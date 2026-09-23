@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>উপস্থিতি সেটআপ — <%= settings.schoolName || 'স্কুল ম্যানেজমেন্ট সিস্টেম' %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>⚙️ উপস্থিতি সেটআপ</h1>
+    <p class="sub" style="margin-bottom:10px;">একাডেমিক সেশন, প্রতিটি ক্লাস কোন শিফটে চলবে, এবং কোন ক্লাসের ক্লাস টিচার কে — এখানে ঠিক করুন।</p>
+
+    <% if (error) { %>
+      <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:10px 12px; margin-bottom:14px;">
+        <p style="color:#b91c1c; font-size:14px; margin:0;">⚠️ <%= error %></p>
+      </div>
+    <% } %>
+    <% if (saved) { %>
+      <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px; margin-bottom:14px;">
+        <p style="color:#15803d; font-size:14px; margin:0;">✅ সেভ হয়েছে।</p>
+      </div>
+    <% } %>
+
+    <p class="sub" style="margin:0 0 4px;">বর্তমান একাডেমিক সেশন: <span class="pill"><%= currentSession %></span></p>
+
+    <label>সেশন দেখুন / পরিবর্তন করুন</label>
+    <form method="GET" action="/admin/attendance/setup" class="row" style="align-items:flex-end;">
+      <div>
+        <select name="session" onchange="this.form.submit()">
+          <% sessions.forEach(s => { %>
+            <option value="<%= s %>" <%= s === selectedSession ? 'selected' : '' %>><%= s %><%= s === currentSession ? ' (বর্তমান)' : '' %></option>
+          <% }) %>
+        </select>
+      </div>
+    </form>
+
+    <% if (selectedSession !== currentSession) { %>
+      <form method="POST" action="/admin/attendance/setup/session/set-current" style="margin-top:10px;">
+        <input type="hidden" name="session" value="<%= selectedSession %>" />
+        <button type="submit" class="btn btn-secondary btn-block">✅ "<%= selectedSession %>" কে বর্তমান সেশন হিসেবে সেট করুন</button>
+      </form>
+    <% } %>
+
+    <label style="margin-top:18px;">নতুন সেশন যোগ করুন</label>
+    <form method="POST" action="/admin/attendance/setup/session/add" class="row" style="align-items:flex-end;">
+      <input type="hidden" name="session" value="<%= selectedSession %>" />
+      <div><input type="text" name="newSession" placeholder="যেমন 2027" required /></div>
+      <div style="flex:0 0 auto;"><button type="submit" class="btn btn-secondary">➕ যোগ করুন</button></div>
+    </form>
+  </div>
+
+  <details class="card acc">
+    <summary>🗓️ ক্লাস → শিফট (সেশন: <%= selectedSession %>)</summary>
+    <p class="sub">প্রতিটি ক্লাস এই সেশনে কোন শিফটে চলবে বেছে দিন।</p>
+    <% if (classes.length === 0) { %>
+      <p class="empty">কোনো ক্লাস নেই।</p>
+    <% } else { %>
+      <% classes.forEach(cls => { %>
+        <form method="POST" action="/admin/attendance/setup/shift" class="list-item" style="gap:10px;">
+          <input type="hidden" name="session" value="<%= selectedSession %>" />
+          <input type="hidden" name="classSlug" value="<%= cls.slug %>" />
+          <span style="flex:1; font-weight:600;"><%= cls.name %></span>
+          <select name="shift" style="width:auto;">
+            <option value="morning" <%= shifts[cls.slug] === 'morning' ? 'selected' : '' %>>মর্নিং</option>
+            <option value="day" <%= shifts[cls.slug] === 'day' ? 'selected' : '' %>>ডে</option>
+          </select>
+          <button type="submit" class="btn btn-secondary" style="padding:8px 12px; font-size:13px;">সেভ</button>
+        </form>
+      <% }) %>
+    <% } %>
+  </details>
+
+  <% ["morning", "day"].forEach(shift => { %>
+    <% const classesInShift = classes.filter(c => shifts[c.slug] === shift); %>
+    <details class="card acc">
+      <summary><%= SHIFT_LABELS[shift] %> — ক্লাস টিচার (সেশন: <%= selectedSession %>)</summary>
+      <% if (classesInShift.length === 0) { %>
+        <p class="empty">এই শিফটে এখনো কোনো ক্লাস বসানো হয়নি — উপরে "ক্লাস → শিফট" থেকে বসান।</p>
+      <% } else { %>
+        <% classesInShift.forEach(cls => { %>
+          <% const assigned = classTeachers.find(a => a.shift === shift && a.classSlug === cls.slug); %>
+          <div class="list-item" style="flex-direction:column; align-items:stretch; gap:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:600;"><%= cls.name %></span>
+              <% if (assigned) { %>
+                <span class="pill">🏫 <%= assigned.teacherName %></span>
+              <% } else { %>
+                <span class="pill" style="background:#fef2f2; color:#b91c1c;">নির্ধারিত নয়</span>
+              <% } %>
+            </div>
+            <form method="POST" action="/admin/attendance/setup/class-teacher" style="display:flex; gap:8px;">
+              <input type="hidden" name="session" value="<%= selectedSession %>" />
+              <input type="hidden" name="shift" value="<%= shift %>" />
+              <input type="hidden" name="classSlug" value="<%= cls.slug %>" />
+              <select name="teacherAccountId" style="flex:1;">
+                <option value="">— শিক্ষক বেছে নিন —</option>
+                <% teacherAccounts.forEach(t => { %>
+                  <option value="<%= t.id %>" <%= assigned && assigned.teacherAccountId === t.id ? 'selected' : '' %>><%= t.name %></option>
+                <% }) %>
+              </select>
+              <button type="submit" class="btn btn-primary" style="flex:0 0 auto; padding:10px 12px; font-size:13px;">নির্ধারণ করুন</button>
+            </form>
+            <% if (assigned) { %>
+              <form method="POST" action="/admin/attendance/setup/class-teacher/remove">
+                <input type="hidden" name="session" value="<%= selectedSession %>" />
+                <input type="hidden" name="shift" value="<%= shift %>" />
+                <input type="hidden" name="classSlug" value="<%= cls.slug %>" />
+                <button type="submit" class="btn btn-danger btn-block" style="padding:8px; font-size:13px;">✕ ক্লাস টিচার সরান</button>
+              </form>
+            <% } %>
+          </div>
+        <% }) %>
+      <% } %>
+    </details>
+  <% }) %>
+
+  <% if (teacherAccounts.length === 0) { %>
+    <div class="card">
+      <p class="empty">এখনো কোনো শিক্ষক লগইন অ্যাকাউন্ট নেই। ক্লাস টিচার বসাতে আগে <a href="/admin/teacher-accounts">শিক্ষক লগইন অ্যাকাউন্ট</a> তৈরি করুন।</p>
+    </div>
+  <% } %>
+
+    </div>
+  </div>
+</body>
+</html>

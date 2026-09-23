@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>পরীক্ষা তালিকা — টিচার প্যানেল</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="nav">
+    <a href="/teacher/panel">🏠 হোম</a>
+    <a href="/teacher/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h2>নতুন পরীক্ষা তৈরি করুন</h2>
+    <% if (classes.length === 0) { %>
+      <p class="empty">এখনো কোনো ক্লাস তৈরি করা হয়নি — এডমিনের সাথে যোগাযোগ করুন।</p>
+    <% } else { %>
+      <form method="POST" action="/teacher/exams/create">
+        <label>ক্লাস <span style="font-weight:400; color:#999;">(একই পরীক্ষা একসাথে একাধিক ক্লাসের জন্য তৈরি করতে একাধিক ক্লাস সিলেক্ট করুন)</span></label>
+        <div class="class-checklist">
+          <% classes.forEach(c => { %>
+            <label class="check-row">
+              <input type="checkbox" name="classSlug" value="<%= c.slug %>" />
+              <span><%= c.name %></span>
+            </label>
+          <% }) %>
+        </div>
+
+        <% if (settings.schoolName) { %>
+          <label>স্কুলের নাম</label>
+          <input type="text" value="<%= settings.schoolName %>" disabled />
+        <% } %>
+
+        <div class="row" style="align-items:flex-end;">
+          <div style="display:flex; flex-direction:column;">
+            <label>পরীক্ষার নাম</label>
+            <input type="text" name="examName" placeholder="বার্ষিক পরীক্ষা" required />
+          </div>
+          <div style="display:flex; flex-direction:column;">
+            <label>সেশন</label>
+            <input type="text" name="session" placeholder="2026" />
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">পরীক্ষা তৈরি করুন</button>
+      </form>
+    <% } %>
+  </div>
+
+  <div class="card">
+    <h2>বিদ্যমান পরীক্ষাসমূহ</h2>
+    <% if (examGroups.length === 0) { %>
+      <p class="empty">এখনো কোনো পরীক্ষা তৈরি করা হয়নি।</p>
+    <% } else { %>
+      <% examGroups.forEach(group => { %>
+        <div style="padding:12px 0; border-bottom:1px solid #f0f0f0;">
+          <div class="group-title">
+            <div>
+              <strong><%= group.examName %></strong>
+              <span style="font-size:12px;color:#888;"><%= group.session %></span>
+            </div>
+          </div>
+          <div class="group-classes">
+            <% group.entries.forEach(e => { %>
+              <div class="list-item">
+                <span class="pill"><%= e.className %></span>
+                <div class="exam-actions">
+                  <a href="/teacher/exams/<%= e.key %>" class="btn btn-secondary">খুলুন</a>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+</body>
+</html>

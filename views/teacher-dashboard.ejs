@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>টিচার প্যানেল — <%= settings.schoolName || 'স্কুল ম্যানেজমেন্ট সিস্টেম' %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="nav" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+    <span style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
+      <% if (settings.logoDataUrl) { %>
+        <img src="<%= settings.logoDataUrl %>" alt="লোগো" style="width:32px; height:32px; object-fit:contain; border-radius:7px; flex-shrink:0;" />
+      <% } %>
+      <span style="min-width:0; text-align:left; line-height:1.3;">
+        <span style="display:block; font-weight:700; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><%= settings.schoolName || 'স্কুল ম্যানেজমেন্ট সিস্টেম' %></span>
+        <span style="display:block; font-size:12px; color:#888;">টিচার প্যানেল</span>
+      </span>
+    </span>
+    <a href="/teacher/logout" style="flex:0 0 auto;">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <div style="display:flex; align-items:center; gap:14px;">
+      <% if (photoDataUrl) { %>
+        <img src="<%= photoDataUrl %>" alt="<%= teacher.name %>" style="width:56px; height:56px; object-fit:cover; border-radius:50%; flex-shrink:0;" />
+      <% } else { %>
+        <div style="width:56px; height:56px; border-radius:50%; background:#eef4ff; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; flex-shrink:0;">
+          <%= teacher.name.trim().charAt(0) %>
+        </div>
+      <% } %>
+      <div>
+        <h1 style="margin:0;">স্বাগতম, <%= teacher.name %></h1>
+        <% if (designation) { %><p style="margin:2px 0 0; color:#666; font-size:14px;"><%= designation %></p><% } %>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:14px;">
+      <span class="pill">📝 তৈরি করা পরীক্ষা: <%= examsCreated %></span>
+      <span class="pill">📚 এন্ট্রি করা বিষয়: <%= subjectsEntered %></span>
+    </div>
+
+    <p class="sub" style="margin-top:16px;">পরীক্ষা তৈরি করুন বা আগের পরীক্ষায় ঢুকে বিষয়ভিত্তিক নম্বর এন্ট্রি দিন।</p>
+    <a href="/teacher/exams" class="btn btn-primary btn-block">📝 পরীক্ষা ও মার্ক এন্ট্রি</a>
+    <a href="/teacher/attendance" class="btn btn-primary btn-block" style="margin-top:8px;">🧑 শিক্ষার্থী উপস্থিতি</a>
+    <a href="/teacher/attendance/self" class="btn btn-secondary btn-block" style="margin-top:8px;">🕒 আমার উপস্থিতি (চেক-ইন)</a>
+    <a href="/teacher/salary" class="btn btn-secondary btn-block" style="margin-top:8px;">💰 আমার বেতন</a>
+    <a href="/teacher/profile" class="btn btn-secondary btn-block" style="margin-top:8px;">👤 আমার প্রোফাইল</a>
+  </div>
+
+  <div class="card">
+    <h2>নিয়ম</h2>
+    <p class="sub" style="margin:0;">
+      আপনি যে বিষয়ের নম্বর প্রথম এন্ট্রি করবেন, শুধু আপনিই পরবর্তীতে সেই বিষয়ের নম্বর এডিট করতে পারবেন।
+      অন্য শিক্ষকের এন্ট্রি করা বিষয়ের নম্বর আপনি শুধু দেখতে পারবেন, পরিবর্তন করতে পারবেন না।
+    </p>
+  </div>
+</body>
+</html>

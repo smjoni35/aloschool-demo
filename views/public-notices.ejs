@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>নোটিশ — <%= settings.schoolName || 'স্কুল' %></title>
+<meta name="description" content="<%= (settings.schoolName || 'স্কুল') %> এর সর্বশেষ নোটিশ ও ঘোষণা" />
+<link rel="icon" type="image/png" href="/icon-192.png" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+<%- include('_motion') %>
+<%- include('_public-style') %>
+<style>
+  body { padding: 0; }
+  .page-header {
+    background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+    padding: 32px 18px 40px; text-align: center; border-radius: 0 0 28px 28px; margin-bottom: 0;
+  }
+  .page-header h1 { color: #fff; font-size: 22px; margin: 0 0 6px; }
+  .page-header p { color: rgba(255,255,255,0.88); font-size: 13.5px; margin: 0; }
+  .page-content { max-width: 900px; margin: 0 auto; padding: 20px 16px 0; }
+  @media (min-width: 900px) {
+    body.public-home:not(.page-dashboard) { padding: 0; }
+    body.public-home .page-content .card { max-width: none; }
+    .page-header { padding: 48px 24px 56px; }
+    .page-header h1 { font-size: 30px; }
+    .page-header p { font-size: 15px; }
+  }
+  .notice-item { padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+  .notice-item:last-child { border-bottom: none; }
+  .notice-title { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .new-badge { display: inline-block; background: #dc2626; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; letter-spacing: 0.2px; flex-shrink: 0; animation: newPulse 1.8s ease-in-out infinite; }
+  @keyframes newPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+  @media (prefers-reduced-motion: reduce) { .new-badge { animation: none; } }
+  .notice-date { color: #999; font-size: 12px; margin-top: 2px; }
+  .notice-body { color: #555; font-size: 14px; margin-top: 4px; white-space: pre-line; }
+</style>
+</head>
+<body class="public-home">
+
+  <%- include('_public-nav', { activePage: 'notices' }) %>
+
+  <div class="page-header">
+    <h1>📢 সকল নোটিশ</h1>
+    <p><%= settings.schoolName || '' %></p>
+  </div>
+
+  <div class="page-content">
+  <div class="card">
+    <% if (notices.length === 0) { %>
+      <p class="empty">এই মুহূর্তে কোনো নোটিশ নেই।</p>
+    <% } else { %>
+      <% notices.forEach((n) => { %>
+        <div class="notice-item">
+          <div class="notice-title"><%= n.title %><% if (n.isNew) { %><span class="new-badge">নতুন</span><% } %></div>
+          <% if (n.date) { %><div class="notice-date"><%= n.date %></div><% } %>
+          <% if (n.body) { %><div class="notice-body"><%= n.body %></div><% } %>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+
+  <%- include('_public-footer') %>
+
+  </div>
+
+<button type="button" class="to-top" id="toTop" aria-label="উপরে যান" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+<script>
+  var toTop = document.getElementById('toTop');
+  if (toTop) {
+    var toggleTop = function () { toTop.classList.toggle('show', window.scrollY > 500); };
+    window.addEventListener('scroll', toggleTop, { passive: true });
+    toggleTop();
+  }
+</script>
+<%- include('_floating-contact') %>
+</body>
+</html>

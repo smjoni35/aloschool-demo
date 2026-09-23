@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title><%= student.name %> — ফি</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+<style>
+  .fee-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+  .fee-row:last-child { border-bottom: none; }
+  .fee-amt-charge { color: #b91c1c; font-weight: 600; }
+  .fee-amt-payment { color: #15803d; font-weight: 600; }
+  .fee-amt-discount { color: #b45309; font-weight: 600; }
+  .fee-meta { font-size: 12px; color: #999; }
+</style>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/students/<%= classSlug %>/<%= student.id %>">← প্রোফাইল</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1><%= student.name %> <span class="pill"><%= className %></span></h1>
+    <p class="sub" style="margin:2px 0 12px;">রোল: <%= student.roll || '-' %><% if (student.transportEnabled) { %> · 🚌 গাড়ি সুবিধা চালু<% } %><% if (student.coachingEnabled) { %> · 📘 কোচিং চালু<% } %></p>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="num">৳ <%= balance.charged %></div>
+        <div class="label">মোট ধার্য</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">৳ <%= balance.paid %></div>
+        <div class="label">মোট জমা</div>
+      </div>
+      <% if (balance.discounted > 0) { %>
+      <div class="stat-card" style="grid-column: span 2;">
+        <div class="num" style="color:#b45309;">৳ <%= balance.discounted %></div>
+        <div class="label">মোট ছাড়/মওকুফ</div>
+      </div>
+      <% } %>
+      <div class="stat-card" style="grid-column: span 2;">
+        <div class="num" style="color: <%= balance.due > 0 ? '#b91c1c' : (balance.due < 0 ? '#2563eb' : '#15803d') %>;">
+          ৳ <%= Math.abs(balance.due) %>
+        </div>
+        <div class="label">
+          <% if (balance.due > 0) { %>বকেয়া<% } else if (balance.due < 0) { %>অগ্রিম জমা আছে<% } else { %>কোনো বকেয়া নেই<% } %>
+        </div>
+      </div>
+    </div>
+    <% if (saved) { %>
+      <p style="background:#f0fdf4; color:#15803d; padding:10px; border-radius:8px; font-size:14px; margin:14px 0 0;">✅ সংরক্ষণ করা হয়েছে।</p>
+    <% } %>
+  </div>
+
+  <details class="card acc" open>
+    <summary>পেমেন্ট নিন</summary>
+    <form method="POST" action="/students/<%= classSlug %>/<%= student.id %>/fees/payment">
+      <div class="row">
+        <div>
+          <label>টাকার পরিমাণ</label>
+          <input type="number" name="amount" min="1" required />
+        </div>
+        <div>
+          <label>মাধ্যম</label>
+          <select name="method">
+            <option value="নগদ">নগদ (হাতে হাতে)</option>
+            <option value="বিকাশ">বিকাশ</option>
+            <option value="নগদ (মোবাইল ব্যাংকিং)">নগদ (মোবাইল ব্যাংকিং)</option>
+            <option value="ব্যাংক">ব্যাংক</option>
+            <option value="অন্যান্য">অন্যান্য</option>
+          </select>
+        </div>
+      </div>
+      <label>নোট (ঐচ্ছিক)</label>
+      <input type="text" name="note" placeholder="যেমন: জানুয়ারি + ফেব্রুয়ারি মাসের বেতন" />
+      <button type="submit" class="btn btn-primary btn-block">✅ পেমেন্ট জমা নিন</button>
+    </form>
+  </details>
+
+  <details class="card acc">
+    <summary>অন্যান্য চার্জ যোগ করুন</summary>
+    <p class="sub" style="margin:0 0 10px;">তালিকায় নেই এমন কিছুর জন্য (যেমন বই, শিক্ষা সফর) — একবারের চার্জ হিসেবে বসবে।</p>
+    <form method="POST" action="/students/<%= classSlug %>/<%= student.id %>/fees/charge">
+      <div class="row">
+        <div style="flex:2;">
+          <input type="text" name="label" placeholder="যেমন: শিক্ষা সফর ফি" required />
+        </div>
+        <div style="flex:1;">
+          <input type="number" name="amount" placeholder="৳" min="1" required />
+        </div>
+      </div>
+      <button type="submit" class="btn btn-secondary btn-block">যোগ করুন</button>
+    </form>
+  </details>
+
+  <details class="card acc">
+    <summary>🏷️ ছাড়/মওকুফ দিন</summary>
+    <p class="sub" style="margin:0 0 10px;">এককালীন — কোনো নির্দিষ্ট কারণে বকেয়া থেকে কিছু টাকা কমিয়ে দিন। স্থায়ী (প্রতি মাসের) ছাড়ের জন্য প্রোফাইল পেজে সেট করুন।</p>
+    <form method="POST" action="/students/<%= classSlug %>/<%= student.id %>/fees/discount">
+      <div class="row">
+        <div style="flex:2;">
+          <input type="text" name="label" placeholder="যেমন: আর্থিক কষ্টে মওকুফ" />
+        </div>
+        <div style="flex:1;">
+          <input type="number" name="amount" placeholder="৳" min="1" required />
+        </div>
+      </div>
+      <label>নোট (ঐচ্ছিক)</label>
+      <input type="text" name="note" placeholder="বিস্তারিত কারণ" />
+      <button type="submit" class="btn btn-secondary btn-block">🏷️ ছাড় দিন</button>
+    </form>
+  </details>
+
+  <details class="card acc">
+    <summary>হিস্টোরি</summary>
+    <% if (ledger.length === 0) { %>
+      <p class="empty">এখনো কোনো চার্জ বা পেমেন্ট এন্ট্রি নেই।</p>
+    <% } else { %>
+      <% ledger.forEach(e => { %>
+        <div class="fee-row">
+          <div>
+            <div><%= e.label %></div>
+            <div class="fee-meta">
+              <%= e.date %>
+              <% if (e.kind === 'payment' && e.method) { %> · <%= e.method %><% } %>
+              <% if (e.note) { %> · <%= e.note %><% } %>
+              <% if (e.kind === 'payment' && e.receiptNo) { %> · রশিদ: <%= e.receiptNo %><% } %>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="<%= e.kind === 'payment' ? 'fee-amt-payment' : (e.kind === 'discount' ? 'fee-amt-discount' : 'fee-amt-charge') %>">
+              <%= e.kind === 'charge' ? '+' : '−' %>৳ <%= e.amount %>
+            </span>
+            <% if (e.kind === 'payment') { %>
+              <a href="/students/<%= classSlug %>/<%= student.id %>/fees/receipt/<%= e.id %>/pdf" target="_blank" class="btn btn-secondary" style="padding:6px 10px; font-size:12px;">🧾 রশিদ</a>
+            <% } %>
+            <form method="POST" action="/students/<%= classSlug %>/<%= student.id %>/fees/entry/<%= e.id %>/delete" onsubmit="return appConfirm(this, 'এই এন্ট্রিটা মুছে ফেলবেন?')">
+              <button type="submit" class="btn btn-danger" style="padding:6px 10px; font-size:12px;">মুছুন</button>
+            </form>
+          </div>
+        </div>
+      <% }) %>
+    <% } %>
+  </details>
+
+    </div>
+  </div>
+</body>
+</html>

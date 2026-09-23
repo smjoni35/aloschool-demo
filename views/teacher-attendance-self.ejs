@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>আমার উপস্থিতি — <%= settings.schoolName || 'স্কুল ম্যানেজমেন্ট সিস্টেম' %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="nav">
+    <a href="/teacher/panel">🏠 হোম</a>
+    <a href="/teacher/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>🕒 আমার উপস্থিতি</h1>
+    <p class="sub">আজ, <%= today %></p>
+
+    <% if (checked === '1') { %>
+      <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px; margin-bottom:14px;">
+        <p style="color:#15803d; font-size:14px; margin:0;">✅ চেক-ইন সম্পন্ন হয়েছে।</p>
+      </div>
+    <% } else if (checked === '2') { %>
+      <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px; margin-bottom:14px;">
+        <p style="color:#15803d; font-size:14px; margin:0;">✅ চেক-আউট সম্পন্ন হয়েছে।</p>
+      </div>
+    <% } %>
+    <% if (isHoliday) { %>
+      <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:10px 12px; margin-bottom:14px;">
+        <p style="color:#c2410c; font-size:14px; margin:0;">🗓️ আজ সাপ্তাহিক ছুটি (শুক্র/শনিবার) — চেক-ইন না করলেও অনুপস্থিত ধরা হবে না।</p>
+      </div>
+    <% } %>
+
+    <% if (todayEntry && todayEntry.checkInAt && todayEntry.checkOutAt) { %>
+      <div class="stat-card" style="text-align:center; padding:18px;">
+        <div class="num" style="font-size:18px;">✅ চেক-ইন ও চেক-আউট সম্পন্ন</div>
+        <div class="label" style="margin-top:6px; line-height:1.8;">
+          🕒 চেক-ইন: <%= new Date(todayEntry.checkInAt).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dhaka' }) %><br/>
+          🚪 চেক-আউট: <%= new Date(todayEntry.checkOutAt).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dhaka' }) %>
+          <br/>(<%= todayEntry.markedBy === 'self' ? 'নিজে' : 'এডমিন কর্তৃক' %>)
+        </div>
+      </div>
+    <% } else if (todayEntry && todayEntry.checkInAt) { %>
+      <div class="stat-card" style="text-align:center; padding:18px;">
+        <div class="num" style="font-size:18px;">✅ চেক-ইন হয়েছে</div>
+        <div class="label" style="margin-top:6px;">
+          🕒 <%= new Date(todayEntry.checkInAt).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dhaka' }) %>
+          (<%= todayEntry.markedBy === 'self' ? 'নিজে' : 'এডমিন কর্তৃক' %>)
+        </div>
+      </div>
+      <form method="POST" action="/teacher/attendance/self/checkout" style="margin-top:14px;">
+        <button type="submit" class="btn btn-primary btn-block">🚪 চেক-আউট করুন</button>
+      </form>
+    <% } else if (todayEntry && todayEntry.status) { %>
+      <div class="stat-card" style="text-align:center; padding:18px;">
+        <div class="num" style="font-size:18px;">
+          <%= todayEntry.status === 'absent' ? '❌ অনুপস্থিত' : '🟡 ছুটি' %>
+        </div>
+        <div class="label" style="margin-top:6px;">এডমিন কর্তৃক নির্ধারিত</div>
+      </div>
+    <% } else { %>
+      <form method="POST" action="/teacher/attendance/self/checkin">
+        <button type="submit" class="btn btn-primary btn-block">✅ চেক-ইন করুন</button>
+      </form>
+    <% } %>
+  </div>
+
+  <div class="card">
+    <h2>এই মাসের সারাংশ</h2>
+    <div class="stat-grid" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="stat-card"><div class="num"><%= myMonthly.present %></div><div class="label">উপস্থিত</div></div>
+      <div class="stat-card"><div class="num"><%= myMonthly.absent %></div><div class="label">অনুপস্থিত</div></div>
+      <div class="stat-card"><div class="num"><%= myMonthly.leave %></div><div class="label">ছুটি</div></div>
+    </div>
+    <p class="sub" style="margin-top:12px;">উপস্থিতির হার: <strong><%= myMonthly.percentage === null ? '—' : myMonthly.percentage + '%' %></strong></p>
+  </div>
+</body>
+</html>

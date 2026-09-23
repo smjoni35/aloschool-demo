@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title><%= subject.name %> — নম্বর এন্ট্রি</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+    <a href="/exams/<%= exam.key %>">⬅ পরীক্ষা</a>
+  </div>
+
+  <div class="card">
+    <h1><%= subject.name %></h1>
+    <p class="sub"><%= exam.className %> — <%= exam.examName %> — পূর্ণমান <%= subject.fullMarks %></p>
+
+    <% if (typeof manualError !== 'undefined' && manualError && manualError.length > 0) { %>
+      <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:10px 12px; margin-bottom:16px;">
+        <p style="color:#b91c1c; font-size:14px; margin:0 0 6px; font-weight:600;">⚠️ কিছু নম্বর সেভ হয়নি:</p>
+        <ul style="margin:0; padding-left:18px; font-size:13px; color:#b91c1c;">
+          <% manualError.forEach(e => { %>
+            <li>রোল "<%= e.roll %>" — <%= e.reason %></li>
+          <% }) %>
+        </ul>
+      </div>
+    <% } %>
+
+    <% if (students.length === 0) { %>
+      <p class="empty">এই ক্লাসে কোনো শিক্ষার্থী নেই। আগে <a href="/students?class=<%= exam.classSlug %>">শিক্ষার্থী যোগ করুন</a>।</p>
+    <% } else { %>
+      <div style="background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:14px; margin-bottom:18px;">
+        <h3 style="margin:0 0 6px; font-size:15px;">📥 বাল্ক নম্বর ইম্পোর্ট</h3>
+        <p class="sub" style="margin:0 0 10px;">
+          টেমপ্লেটে রোল অনুযায়ী নম্বর সব শিক্ষার্থীর জন্য একসাথে পূরণ করে আপলোড করুন। খালি রাখলে সেই শিক্ষার্থীর নম্বর মুছে যাবে।
+        </p>
+        <% if (typeof importResult !== 'undefined' && importResult) { %>
+          <% if (importResult.error) { %>
+            <p style="color:#b91c1c; font-size:14px; margin:0 0 10px;">⚠️ <%= importResult.error %></p>
+          <% } else { %>
+            <p style="background:#f0fdf4; color:#15803d; padding:8px 10px; border-radius:8px; font-size:14px; margin:0 0 10px;">
+              ✅ <%= importResult.updated %> জনের নম্বর আপডেট হয়েছে।
+              <% if (importResult.skipped.length > 0) { %> <%= importResult.skipped.length %> টি সারি বাদ পড়েছে।<% } %>
+            </p>
+            <% if (importResult.skipped.length > 0) { %>
+              <ul style="margin:0 0 10px; padding-left:18px; font-size:13px; color:#92400e;">
+                <% importResult.skipped.forEach(sk => { %>
+                  <li>রোল "<%= sk.roll %>" — <%= sk.reason %></li>
+                <% }) %>
+              </ul>
+            <% } %>
+          <% } %>
+        <% } %>
+        <a href="/exams/<%= exam.key %>/marks/<%= subjectIndex %>/template" class="btn btn-secondary">⬇️ টেমপ্লেট ডাউনলোড করুন</a>
+        <form method="POST" action="/exams/<%= exam.key %>/marks/<%= subjectIndex %>/import" enctype="multipart/form-data" style="margin-top:10px;">
+          <input type="file" name="file" accept=".xlsx,.xls,.csv" required />
+          <button type="submit" class="btn btn-primary btn-block" style="margin-top:10px;">আপলোড ও ইম্পোর্ট করুন</button>
+        </form>
+      </div>
+
+      <form method="POST" action="/exams/<%= exam.key %>/marks/<%= subjectIndex %>">
+        <% students.forEach(s => { %>
+          <% const existing = (exam.marksByStudent[s.id] && exam.marksByStudent[s.id][subject.name]) ?? ''; %>
+          <div class="subject-input-row">
+            <div class="name"><%= s.roll ? s.roll + '. ' : '' %><%= s.name %></div>
+            <input
+              type="number"
+              step="0.01"
+              name="marks[<%= s.id %>]"
+              placeholder="নম্বর"
+              min="0"
+              max="<%= subject.fullMarks %>"
+              value="<%= existing %>"
+            />
+          </div>
+        <% }) %>
+        <button type="submit" class="btn btn-primary btn-block">নম্বর সেভ করুন</button>
+      </form>
+    <% } %>
+  </div>
+  <%- include('_script') %>
+
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,936 @@
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Hind Siliguri', sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+    padding: 16px;
+    color: #1a1a1a;
+  }
+  .card {
+    max-width: 720px;
+    margin: 0 auto 16px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 0 0 12px; }
+  /* Collapsible "card" sections — used wherever a page wraps a card's
+     content in <details class="card acc"><summary>Title</summary>...
+     instead of a plain <div class="card"><h2>Title</h2>...>, so long
+     pages with several sections can be collapsed down to just their
+     titles. Nothing about the card's own look (background, padding,
+     shadow) changes — only the heading becomes a clickable toggle. */
+  details.acc > summary {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  details.acc > summary::-webkit-details-marker { display: none; }
+  details.acc > summary::after {
+    content: '⌄';
+    color: #999;
+    font-size: 20px;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: transform 0.15s;
+  }
+  details.acc[open] > summary::after { transform: rotate(180deg); }
+  details.acc > summary + * { margin-top: 14px; }
+  p.sub { color: #666; margin: 0 0 16px; font-size: 14px; }
+  a { color: #2563eb; text-decoration: none; }
+  label { display: block; font-size: 13px; color: #444; margin: 10px 0 4px; }
+  input, select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 15px;
+  }
+  /* Native textarea resize handle defaults to "both" in every browser,
+     so dragging it sideways sets an explicit inline width that
+     overrides width:100% above — the box then grows wider than its
+     card/screen and gets cut off on the right. Vertical-only keeps the
+     up/down resize (harmless) and removes the sideways drag entirely,
+     everywhere in the project since this is the one shared rule every
+     textarea uses. */
+  textarea { resize: vertical; max-width: 100%; }
+  .row { display: flex; gap: 10px; }
+  .row > div { flex: 1; }
+  form { margin: 0; }
+  button, .btn {
+    display: inline-block;
+    padding: 11px 16px;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+  }
+  .btn-primary { background: #2563eb; color: #fff; }
+  .btn-secondary { background: #f1f5f9; color: #333; }
+  .btn-danger { background: #fee2e2; color: #b91c1c; }
+  .btn-block { width: 100%; margin-top: 14px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #eee; }
+  th { color: #666; font-weight: 600; font-size: 12px; text-transform: uppercase; }
+  .nav { max-width: 720px; margin: 0 auto 16px; display: flex; gap: 10px; }
+  .nav a { flex: 1; background: #fff; padding: 10px; border-radius: 8px; text-align: center; font-size: 13px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .pill { display: inline-block; background: #eef4ff; color: #2563eb; padding: 2px 8px; border-radius: 999px; font-size: 12px; }
+
+  /* Dashboard stat grid + grouped-menu section labels (admin panel, teacher
+     panel) — shared so both dashboards look consistent. */
+  .brand-header { display: flex; align-items: center; gap: 12px; }
+  .brand-header img.brand-logo {
+    width: 52px; height: 52px; object-fit: contain; border-radius: 10px;
+    background: #f8fafc; padding: 4px; flex-shrink: 0; border: 1px solid #eef2f7;
+  }
+  .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 16px; }
+  .stat-card { background: #f8fafc; border: 1px solid #eef2f7; border-radius: 10px; padding: 12px; text-align: center; }
+  .stat-card .num { font-size: 22px; font-weight: 700; color: #2563eb; line-height: 1.2; }
+  .stat-card .num.c-green { color: #16a34a; }
+  .stat-card .num.c-red { color: #dc2626; }
+  .stat-card .num.c-orange { color: #d97706; }
+  .stat-card .label { font-size: 12px; color: #666; margin-top: 2px; }
+
+  /* Quick-action grid at the top of the admin dashboard — the 8
+     most-used links as tappable icon tiles, so common tasks don't
+     require scrolling through the full grouped menu below. */
+  .quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .quick-item { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; color: #1a1a1a; font-size: 12px; font-weight: 600; }
+  .quick-item .qi-icon { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  @media (max-width: 420px) {
+    .quick-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  /* ---------- Professional desktop polish — every page ----------
+     _style.ejs is included by every view, so this single block lifts
+     the whole site on wide screens: pages stop looking like a phone
+     layout stretched into empty space and start using the extra width
+     with more breathing room, calmer shadows and clearer interactive
+     states. Scoped to :not(.page-dashboard) because the dashboard has
+     its own richer, more specific desktop layout below. */
+  @media (min-width: 900px) {
+    body:not(.page-dashboard) { padding: 32px 24px; }
+    body:not(.page-dashboard) .card {
+      max-width: 860px;
+      padding: 30px 34px;
+      border: 1px solid rgba(15,23,42,0.05);
+      box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 10px 28px rgba(15,23,42,0.06);
+    }
+    body:not(.page-dashboard) .nav { max-width: 860px; }
+    /* Sidebar-panel pages (admin/student lists etc.) sit to the right
+       of the fixed 240px sidebar with real room to spare — let their
+       cards use more of it instead of floating a narrow column in a
+       sea of empty space. */
+    body:not(.page-dashboard) .main-content { padding: 30px 36px 48px; }
+    body:not(.page-dashboard) .main-content .card { max-width: 980px; }
+    body:not(.page-dashboard) .mobile-topbar { max-width: 860px; }
+
+    h1 { font-size: 23px; }
+    h2 { font-size: 18px; }
+    p.sub { font-size: 14.5px; }
+
+    button, .btn { padding: 11px 22px; transition: filter .12s ease, box-shadow .12s ease, transform .12s ease; }
+    button:hover, .btn:hover { filter: brightness(0.97); }
+    button:active, .btn:active { transform: translateY(1px); }
+    .btn-primary:hover { box-shadow: 0 6px 16px rgba(37,99,235,0.25); }
+
+    input, select, textarea { transition: border-color .12s ease, box-shadow .12s ease; }
+    input:hover, select:hover, textarea:hover { border-color: #c7ced9; }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    }
+
+    table { font-size: 14.5px; }
+    th { font-size: 12.5px; padding: 10px 8px; }
+    td { padding: 10px 8px; }
+    tbody tr { transition: background .1s ease; }
+    tbody tr:hover td { background: #f8fafc; }
+
+    .nav a { transition: transform .12s ease, box-shadow .12s ease; }
+    .nav a:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(15,23,42,0.08); }
+  }
+
+  /* ---------- Auth pages (login / teacher-login) ----------
+     On a phone this is just a plain card near the top, which is fine.
+     On desktop a lone narrow card floating in an empty gray page reads
+     as unfinished, so give it a proper full-height, vertically
+     centered login screen with a branded backdrop. */
+  body.page-auth { background: #f4f6f9; }
+  @media (min-width: 900px) {
+    body.page-auth {
+      min-height: 100vh; margin: 0; padding: 24px;
+      display: flex; align-items: center; justify-content: center;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(37,99,235,0.10), transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(139,92,246,0.10), transparent 45%),
+        #f4f6f9;
+    }
+    body.page-auth .card {
+      margin-top: 0 !important;
+      box-shadow: 0 20px 50px rgba(15,23,42,0.10), 0 2px 8px rgba(15,23,42,0.05);
+      border-radius: 18px;
+    }
+  }
+
+  /* ---------- Premium look, dashboard only ---------- */
+  body.page-dashboard { background: linear-gradient(180deg, #eef2ff 0%, #f4f6f9 260px); }
+  .page-dashboard .card {
+    border-radius: 18px;
+    border: 1px solid rgba(15,23,42,0.05);
+    box-shadow: 0 6px 24px rgba(15,23,42,0.07), 0 1px 2px rgba(15,23,42,0.04);
+    transition: box-shadow .18s ease, transform .18s ease;
+  }
+  @media (min-width: 900px) {
+    .page-dashboard .dash-wrap .card:not(.dashboard-hero):hover {
+      box-shadow: 0 10px 30px rgba(15,23,42,0.10), 0 2px 6px rgba(15,23,42,0.05);
+      transform: translateY(-1px);
+    }
+  }
+  /* Gentle staggered entrance for the dashboard cards — a small,
+     one-time motion cue on load rather than a persistent effect. */
+  .page-dashboard .dash-wrap .card { animation: dashCardIn .45s ease both; }
+  .page-dashboard .dash-wrap .card.dashboard-hero { animation-delay: 0s; }
+  .page-dashboard .dash-col:nth-of-type(1) .card:nth-of-type(1) { animation-delay: .05s; }
+  .page-dashboard .dash-col:nth-of-type(1) .card:nth-of-type(2) { animation-delay: .10s; }
+  .page-dashboard .dash-col:nth-of-type(1) .card:nth-of-type(3) { animation-delay: .15s; }
+  .page-dashboard .dash-col:nth-of-type(2) .card:nth-of-type(1) { animation-delay: .10s; }
+  .page-dashboard .dash-col:nth-of-type(2) .card:nth-of-type(2) { animation-delay: .15s; }
+  .page-dashboard .dash-col:nth-of-type(2) .card:nth-of-type(3) { animation-delay: .20s; }
+  @keyframes dashCardIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .page-dashboard .dash-wrap .card { animation: none; }
+  }
+  .page-dashboard .card.dashboard-hero {
+    background: linear-gradient(135deg, #eff6ff 0%, #ffffff 55%);
+  }
+  .page-dashboard .brand-logo { box-shadow: 0 2px 8px rgba(15,23,42,0.08); }
+  .page-dashboard .date-pill {
+    background: linear-gradient(#fff,#fff) padding-box,
+                linear-gradient(135deg,#3b82f6,#8b5cf6) border-box;
+    border: 1px solid transparent;
+    box-shadow: 0 2px 8px rgba(59,130,246,0.12);
+  }
+  .page-dashboard .stat-card.tinted {
+    border-radius: 14px;
+    box-shadow: 0 3px 10px rgba(15,23,42,0.05);
+  }
+  .page-dashboard .stat-card.tinted.bg-blue { background: linear-gradient(155deg, #e6efff, #dbeafe); }
+  .page-dashboard .stat-card.tinted.bg-purple { background: linear-gradient(155deg, #f1ecff, #ede9fe); }
+  .page-dashboard .stat-card.tinted.bg-orange { background: linear-gradient(155deg, #fef7e0, #fef3c7); }
+  .page-dashboard .stat-card.tinted.bg-green { background: linear-gradient(155deg, #e4fbee, #dcfce7); }
+  .page-dashboard .stat-card.tinted.bg-red { background: linear-gradient(155deg, #ffe9e9, #fee2e2); }
+  .page-dashboard .stat-card.tinted .stat-icon {
+    border-radius: 11px;
+    box-shadow: 0 3px 8px rgba(15,23,42,0.16), 0 0 0 4px rgba(255,255,255,0.55);
+  }
+  .page-dashboard .stat-card.tinted .num { letter-spacing: -0.01em; }
+  .page-dashboard .quick-item .qi-icon {
+    box-shadow: 0 2px 6px rgba(15,23,42,0.08);
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .page-dashboard .quick-item:hover .qi-icon,
+  .page-dashboard .quick-item:active .qi-icon {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(15,23,42,0.14);
+  }
+  .page-dashboard .section-label {
+    position: relative;
+    padding-left: 12px;
+    font-size: 12.5px;
+    color: #64748b;
+  }
+  .page-dashboard .section-label::before {
+    content: "";
+    position: absolute; left: 0; top: 2px; bottom: 2px;
+    width: 4px; border-radius: 999px;
+    background: linear-gradient(180deg,#3b82f6,#8b5cf6);
+    box-shadow: 0 0 8px rgba(59,130,246,0.45);
+  }
+  .page-dashboard .menu-btn {
+    transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+  }
+  .page-dashboard .menu-btn:hover {
+    background: #f0f5ff; box-shadow: 0 3px 10px rgba(15,23,42,0.06); transform: translateY(-1px);
+  }
+  .page-dashboard .task-row:hover,
+  .page-dashboard .activity-row:hover { background: #fafbff; border-radius: 10px; }
+
+  /* সাম্প্রতিক কার্যক্রম — recent-activity feed on the admin dashboard */
+  .activity-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+  .activity-row:last-child { border-bottom: none; }
+  .activity-row .ai-icon { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .activity-row .ai-text { font-size: 14px; line-height: 1.4; }
+  .activity-row .ai-time { font-size: 12px; color: #999; margin-top: 2px; }
+
+  /* Sidebar layout — pilot on the ড্যাশবোর্ড page only. Desktop: fixed
+     left sidebar, content shifted right. Mobile: sidebar becomes a
+     slide-in drawer (hamburger in a slim top bar) plus a 5-icon bottom
+     nav for one-tap access to the most-used pages. */
+  .app-shell { max-width: 1400px; margin: 0 auto; }
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 240px;
+    background: linear-gradient(180deg, #0f2540 0%, #0b1d33 100%);
+    color: #cbd5e1; padding: 20px 14px;
+    overflow-y: auto; z-index: 50; transform: translateX(-100%);
+    transition: transform .2s ease;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar .sb-brand { display: flex; align-items: center; gap: 10px; color: #fff; margin-bottom: 20px; padding: 0 8px; }
+  .sidebar .sb-brand img { width: 34px; height: 34px; border-radius: 8px; background: #fff; padding: 3px; object-fit: contain; }
+  .sidebar .sb-brand .name { font-size: 14px; font-weight: 700; line-height: 1.3; }
+  .sidebar .sb-section { font-size: 11px; text-transform: uppercase; letter-spacing: .03em; color: #64748b; margin: 16px 0 6px; padding: 0 8px; }
+  .sidebar .sb-link { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; font-size: 14px; color: #cbd5e1; margin-bottom: 2px; transition: background .12s ease, color .12s ease; }
+  .sidebar .sb-link .ic { width: 18px; text-align: center; flex-shrink: 0; }
+  .sidebar .sb-link:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  .sidebar .sb-link.active {
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+    color: #fff; font-weight: 600;
+    box-shadow: 0 4px 12px rgba(37,99,235,0.35);
+  }
+  .sidebar .sb-link .badge { margin-left: auto; background: #dc2626; color: #fff; font-size: 11px; padding: 1px 6px; border-radius: 999px; }
+  .sidebar .sb-dev-credit { margin: 18px 0 8px; padding: 12px 10px; border-top: 1px solid rgba(255,255,255,0.08); }
+  .sidebar .sb-dev-title { font-size: 11px; text-transform: uppercase; letter-spacing: .03em; color: #64748b; margin-bottom: 6px; }
+  .sidebar .sb-dev-name { font-size: 13px; color: #e2e8f0; font-weight: 600; margin-bottom: 4px; }
+  .sidebar .sb-dev-line { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #94a3b8; padding: 3px 0; }
+  .sidebar .sb-dev-line .ic { width: 16px; text-align: center; flex-shrink: 0; }
+  .sidebar .sb-dev-line:hover { color: #cbd5e1; }
+  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 40; }
+  .sidebar-overlay.show { display: block; }
+  .mobile-topbar { display: flex; align-items: center; gap: 10px; max-width: 720px; margin: 0 auto 16px; }
+  .mobile-topbar button { background: #fff; border: none; border-radius: 8px; padding: 10px 12px; font-size: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .mt-avatar { width: 32px; height: 32px; border-radius: 50%; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; overflow: hidden; }
+  .mt-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .bell-badge { position: absolute; top: -6px; right: -8px; background: #dc2626; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 999px; min-width: 15px; text-align: center; }
+  .bottom-nav { display: none; }
+
+  @media (min-width: 900px) {
+    .sidebar { transform: none; }
+    .main-content { margin-left: 240px; padding: 16px; }
+    .mobile-topbar { display: none; }
+  }
+  @media (max-width: 899px) {
+    .main-content { padding: 16px 0; padding-bottom: 76px; }
+    .bottom-nav {
+      display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
+      background: #fff; box-shadow: 0 -2px 10px rgba(0,0,0,.08);
+    }
+    .bottom-nav a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; margin: 6px 4px; padding: 7px 4px; font-size: 10px; color: #666; border-radius: 12px; text-decoration: none; transition: background .15s, color .15s; }
+    .bottom-nav a:active { background: #f1f5f9; }
+    .bottom-nav a.active { color: #2563eb; background: #eff6ff; font-weight: 600; }
+    .bottom-nav a .ic { font-size: 18px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 9px; background: #f5f6f8; }
+    .bottom-nav a.active .ic { background: #dbeafe; }
+    /* On narrow screens brand-header's title block takes the whole
+       first line, so the date-pill wraps onto its own line alone —
+       with justify-content:space-between it then sits flush-left,
+       leaving the rest of that line looking like blank dead space.
+       Full-width instead so it reads as an intentional bar, not a
+       leftover gap. */
+    .date-pill { width: 100%; box-sizing: border-box; }
+  }
+
+  /* আজকের উপস্থিতি — donut chart + legend */
+  .donut-row { display: flex; align-items: center; gap: 14px; flex-wrap: nowrap; }
+  .donut-row svg { flex-shrink: 0; }
+  .donut-legend { flex: 1; min-width: 0; }
+  .donut-legend .dl-row { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #333; padding: 4px 0; }
+  .donut-legend .dl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .donut-legend .dl-num { margin-left: auto; font-weight: 700; color: #111; }
+  @media (max-width: 420px) {
+    .donut-row svg { width: 108px; height: 108px; }
+    .donut-legend .dl-row { font-size: 12px; gap: 4px; padding: 3px 0; }
+  }
+
+  /* ফি সারাংশ — fee summary rows + income/due bar */
+  .fs-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 14px; color: #333; }
+  .fs-row .fs-ic { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .fs-row .fs-val { margin-left: auto; font-weight: 700; color: #111; }
+  .fs-bar { height: 8px; border-radius: 999px; background: #fee2e2; overflow: hidden; margin-top: 10px; }
+  .fs-bar-fill { height: 100%; background: #16a34a; border-radius: 999px; }
+  .fs-bar-labels { display: flex; justify-content: space-between; font-size: 12px; margin-top: 6px; font-weight: 600; }
+
+  /* গুরুত্বপূর্ণ / অপেক্ষমাণ কাজ — actionable task rows */
+  .task-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; text-decoration: none; color: #1a1a1a; }
+  .task-row:last-child { border-bottom: none; }
+  .task-row .task-ic { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .task-row .task-text { font-size: 13px; flex: 1; }
+  .task-row .task-count { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+  .task-row .arrow { color: #ccc; font-size: 16px; }
+
+  /* Tinted (colored-background) stat cards — pilot on the dashboard
+     only. Base .stat-card (white/gray, used on several other pages)
+     is untouched; these modifier classes only apply when added. */
+  .stat-card.tinted { text-align: left; border: none; display: block; text-decoration: none; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+  .stat-card.tinted:hover, .stat-card.tinted:focus-visible { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+  .stat-card.tinted:active { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.10); }
+  .stat-card.tinted.bg-blue { background: #dbeafe; }
+  .stat-card.tinted.bg-purple { background: #ede9fe; }
+  .stat-card.tinted.bg-orange { background: #fef3c7; }
+  .stat-card.tinted.bg-green { background: #dcfce7; }
+  .stat-card.tinted.bg-red { background: #fee2e2; }
+  .stat-card.tinted .stat-icon { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #fff; margin-bottom: 8px; }
+  .stat-card.tinted .num, .stat-card.tinted .num.c-red, .stat-card.tinted .num.c-green, .stat-card.tinted .num.c-orange { color: #1a1a1a; }
+  .stat-card.tinted .trend { font-size: 11px; font-weight: 700; margin-top: 6px; }
+  .stat-card.tinted .trend-up { color: #16a34a; }
+  .stat-card.tinted .trend-down { color: #dc2626; }
+
+  /* গ্রিটিং ব্যানারের ডেট পিল */
+  .date-pill { background: #f8fafc; border: 1px solid #eef2f7; border-radius: 10px; padding: 8px 14px; text-align: center; white-space: nowrap; }
+
+  /* Desktop top bar — search + bell + avatar. Pilot: dashboard only. */
+  .topbar-desktop { display: none; }
+  @media (min-width: 900px) {
+    /* Was a flex-sibling of .main-content under a flex .app-shell, so
+       it floated as its own vertically-centered column instead of
+       sitting as a bar above the content. .app-shell is no longer a
+       flex container (see above) — this margin-left is what actually
+       shifts the bar right of the fixed sidebar now, matching
+       .main-content's own offset. */
+    .topbar-desktop { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; margin-left: 240px; }
+    .topbar-search { flex: 1; display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #eef2f7; border-radius: 10px; padding: 10px 14px; }
+    .topbar-search input { border: none; outline: none; flex: 1; font-family: inherit; font-size: 14px; }
+    .topbar-bell { position: relative; background: #fff; border: 1px solid #eef2f7; border-radius: 10px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 17px; text-decoration: none; }
+    .topbar-avatar { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #eef2f7; border-radius: 10px; padding: 6px 12px 6px 6px; text-decoration: none; color: #1a1a1a; font-size: 13px; font-weight: 600; }
+    .topbar-avatar .ta-circle { width: 28px; height: 28px; border-radius: 50%; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  }
+  .section-label {
+    font-size: 12px; font-weight: 600; color: #999; text-transform: uppercase;
+    letter-spacing: .03em; margin: 20px 0 8px;
+  }
+  .section-label:first-of-type { margin-top: 0; }
+  .menu-btn {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    background: #f8fafc; border: 1px solid #eef2f7; border-radius: 10px;
+    padding: 13px 14px; margin-bottom: 8px; font-size: 15px; font-weight: 600;
+    color: #1a1a1a; text-align: left;
+  }
+  .menu-btn .icon { font-size: 18px; flex-shrink: 0; }
+  .menu-btn .arrow { margin-left: auto; color: #bbb; }
+  .empty { color: #999; font-size: 14px; padding: 12px 0; }
+  .list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+  .subject-input-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f5f5f5; }
+  .subject-input-row .name { flex: 1; font-size: 14px; }
+  .subject-input-row input { width: 90px; }
+  .class-checklist { border: 1px solid #eee; border-radius: 8px; padding: 4px 12px; max-height: 220px; overflow-y: auto; }
+  .check-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; margin: 0; font-size: 15px; color: #1a1a1a; border-bottom: 1px solid #f5f5f5; }
+  .check-row:last-child { border-bottom: none; }
+  .check-row input[type="checkbox"] { width: auto; accent-color: #2563eb; }
+  .group-title { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .group-classes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .group-classes .list-item { padding: 10px; border: 1px solid #f0f0f0; border-radius: 8px; width: 100%; overflow: hidden; }
+  .exam-actions { display: flex; gap: 6px; }
+  .exam-actions > * { min-width: 0; }
+  .exam-actions a, .exam-actions > button { padding: 6px 10px; font-size: 12px; text-align: center; }
+  .btn-stack { display: flex !important; flex-direction: column; align-items: center; justify-content: center; gap: 3px; line-height: 1.2; white-space: nowrap; min-width: max-content !important; }
+  .btn-stack .ic { font-size: 16px; }
+
+  /* Floating call + WhatsApp buttons — fixed to the bottom-right corner on
+     every public page, so a visitor can reach the school with one tap no
+     matter where they've scrolled to. */
+  .floating-contact {
+    position: fixed; right: 16px; bottom: 16px; z-index: 999;
+    display: flex; flex-direction: column; gap: 12px;
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  .floating-contact.fc-hidden { opacity: 0; transform: translateY(12px) scale(.85); pointer-events: none; }
+  .floating-contact a {
+    width: 54px; height: 54px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  }
+  .floating-contact .fc-call { background: #2563eb; }
+  .floating-contact .fc-whatsapp { background: #25D366; }
+  .exam-actions form { display: flex; }
+  .exam-actions form button { padding: 6px 10px; font-size: 12px; width: 100%; }
+
+  /* Subjects list: name + action buttons stay side-by-side on desktop
+     (plenty of width there); on small phone screens they'd get cramped
+     and wrap awkwardly, so below 600px the buttons drop under the name
+     and stretch full width instead. */
+  .subject-actions { display: flex; gap: 6px; }
+  .subject-actions a, .subject-actions > button { padding: 6px 10px; font-size: 12px; }
+  .subject-actions form { display: flex; }
+  .subject-actions form button { padding: 6px 10px; font-size: 12px; width: 100%; }
+
+  /* Students list (views/students.ejs) — avatar + name/roll/shift row,
+     plus the quick client-side search box above it. */
+  .student-search-wrap { position: relative; margin-bottom: 12px; }
+  .student-search-wrap .student-search-icon {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: #999; font-size: 14px; pointer-events: none;
+  }
+  .student-search { padding-left: 34px !important; }
+  .student-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+  .student-row:last-child { border-bottom: none; }
+  .student-avatar {
+    width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 16px; overflow: hidden; text-decoration: none;
+  }
+  .student-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .student-info { flex: 1; min-width: 0; }
+  .student-name {
+    display: block; font-weight: 600; color: #1a1a1a; text-decoration: none;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .student-name:hover { color: #2563eb; }
+  .student-meta { display: flex; gap: 6px; margin-top: 3px; flex-wrap: wrap; }
+  .pill-purple { background: #f3eeff; color: #7c3aed; }
+  .empty-state { text-align: center; padding: 26px 0; }
+  .empty-state-icon { font-size: 34px; margin-bottom: 8px; }
+  @media (min-width: 900px) {
+    .student-row:hover { background: #fafbff; border-radius: 10px; }
+  }
+  @media (max-width: 600px) {
+    .student-row { flex-wrap: wrap; row-gap: 10px; }
+  }
+
+  @media (max-width: 600px) {
+    .subject-item { flex-direction: column; align-items: stretch; gap: 8px; }
+    .subject-actions { width: 100%; }
+    .subject-actions > * { flex: 1; }
+    .subject-actions a, .subject-actions > button, .subject-actions form button {
+      padding: 11px 12px; font-size: 14px; text-align: center;
+    }
+
+    .group-classes .list-item { flex-direction: column; align-items: stretch; gap: 8px; }
+    .exam-actions { width: 100%; }
+    .exam-actions > * { flex: 1; }
+    .exam-actions a, .exam-actions > button, .exam-actions form button {
+      padding: 11px 12px; font-size: 14px; text-align: center;
+    }
+
+    /* Results table (ফলাফল page): on desktop the action buttons stay
+       inline at the end of each row, unchanged. On small screens the
+       row's data columns (অবস্থান/রোল/নাম/মোট/%/গ্রেড) still fit fine —
+       only the action column used to force horizontal scrolling, so
+       here we turn each row into a CSS grid: the six data cells keep
+       their normal row, and the action cell is pushed onto its own
+       full-width line right below, with the print/preview/edit buttons
+       spread evenly across the available width. */
+    .results-table, .results-table thead, .results-table tbody { display: block; width: 100%; }
+    .results-table thead tr, .results-table tbody tr {
+      display: grid;
+      grid-template-columns: repeat(6, auto);
+      column-gap: 8px;
+      align-items: center;
+    }
+    .results-table thead tr th:last-child { display: none; }
+    .results-table tbody tr {
+      row-gap: 10px;
+      padding: 10px 0 12px;
+      border-bottom: 1px solid #eee;
+    }
+    .results-table tbody tr:last-child { border-bottom: none; }
+    .results-table tbody tr td { border-bottom: none; padding: 2px 4px; }
+    .results-table tbody tr td:last-child {
+      grid-column: 1 / -1;
+      padding: 0;
+    }
+    .results-table .subject-actions { width: 100%; }
+    .results-table .subject-actions a {
+      flex: 1;
+      padding: 11px 8px;
+      font-size: 15px;
+      text-align: center;
+    }
+  }
+
+  /* App-styled confirm modal — replaces the browser's default confirm()
+     popup for delete/destructive form submissions, so it matches the
+     rest of the UI instead of looking like a jarring system dialog. */
+  .app-confirm-overlay {
+    position: fixed; inset: 0; background: rgba(15,23,42,0.55);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; z-index: 2000;
+    opacity: 0; pointer-events: none; transition: opacity .18s ease;
+  }
+  .app-confirm-overlay.open { opacity: 1; pointer-events: auto; }
+  .app-confirm-box {
+    background: #fff; border-radius: 16px; padding: 22px 20px;
+    max-width: 340px; width: 100%; text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    transform: translateY(8px) scale(.97); transition: transform .18s ease;
+  }
+  .app-confirm-overlay.open .app-confirm-box { transform: translateY(0) scale(1); }
+  .app-confirm-icon {
+    width: 46px; height: 46px; border-radius: 50%; margin: 0 auto 12px;
+    background: #fef2f2; color: #dc2626; font-size: 22px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .app-confirm-msg { font-size: 14.5px; line-height: 1.6; color: #1e293b; margin-bottom: 18px; }
+  .app-confirm-actions { display: flex; gap: 10px; }
+  .app-confirm-actions button {
+    flex: 1; padding: 11px 10px; border-radius: 10px; border: none;
+    font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer;
+  }
+  .app-confirm-cancel { background: #f1f5f9; color: #334155; }
+  .app-confirm-ok { background: #dc2626; color: #fff; }
+  /* ---------- Dashboard layout (admin /panel) ----------
+     Mobile: one column, cards keep their original order (data via
+     `order`, since the two desktop columns are flattened with
+     display:contents). Desktop: full-width layout — hero banner with a
+     5-up stat row, then two columns of cards. Scoped to .page-dashboard
+     so no other page is affected. */
+  .page-dashboard .dash-wrap { max-width: 720px; margin: 0 auto; }
+  .page-dashboard .dash-wrap .card { max-width: none; margin: 0 0 16px; }
+  .page-dashboard .dash-grid { display: flex; flex-direction: column; }
+  .page-dashboard .dash-col { display: contents; }
+
+  /* Hero banner — navy, matching the sidebar, with a soft decorative
+     glow layer so it reads as a designed banner rather than a flat
+     gradient block. The glow sits in a ::before so it never interferes
+     with the real content (which needs position:relative + z-index). */
+  .page-dashboard .card.dashboard-hero {
+    position: relative; overflow: hidden;
+    background: linear-gradient(120deg, #0f2540 0%, #163e78 62%, #1d4ed8 140%);
+    border: none; color: #fff;
+    box-shadow: 0 14px 34px rgba(15,37,64,0.28), 0 2px 6px rgba(15,37,64,0.18);
+  }
+  .page-dashboard .card.dashboard-hero::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(480px 240px at 88% -10%, rgba(139,92,246,0.35), transparent 60%),
+      radial-gradient(360px 200px at 8% 120%, rgba(56,189,248,0.22), transparent 65%);
+  }
+  .page-dashboard .card.dashboard-hero > * { position: relative; z-index: 1; }
+  .page-dashboard .dashboard-hero h1 { color: #fff; letter-spacing: -0.01em; }
+  .page-dashboard .dashboard-hero p.sub { color: #c5d5ee; }
+  .page-dashboard .dashboard-hero .brand-logo { background: #fff; border-color: transparent; box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
+  .page-dashboard .dashboard-hero .date-pill {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.28);
+    box-shadow: none; color: #fff;
+    backdrop-filter: blur(6px);
+  }
+  .page-dashboard .dashboard-hero .date-pill div:last-child { color: #d4e0f4 !important; }
+  .page-dashboard .dashboard-hero .stat-card.tinted { box-shadow: 0 8px 20px rgba(0,0,0,0.22); }
+  .page-dashboard .dashboard-hero .stat-card.tinted:hover {
+    box-shadow: 0 12px 26px rgba(0,0,0,0.28);
+  }
+
+  /* Fee collection chart — heights come from CSS vars so it can grow on desktop */
+  .page-dashboard .trend-chart {
+    --chart-h: 140px; --bar-max: 96px;
+    display: flex; align-items: flex-end; gap: 10px;
+    height: var(--chart-h); padding: 6px 4px 0;
+  }
+  .page-dashboard .tr-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+  .page-dashboard .tr-amt { font-size: 11px; color: #475569; font-weight: 600; min-height: 14px; }
+  .page-dashboard .tr-lbl { font-size: 11px; color: #64748b; }
+  .page-dashboard .tr-bar {
+    width: 100%; max-width: 34px; border-radius: 6px 6px 2px 2px;
+    background: linear-gradient(180deg, #60a5fa, #2563eb);
+    height: max(4px, calc(var(--r, 0) * var(--bar-max)));
+    box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+    transition: filter .12s ease, transform .12s ease;
+  }
+  .page-dashboard .tr-col:hover .tr-bar { filter: brightness(1.08); transform: scaleY(1.01); }
+
+  @media (max-width: 899px) {
+    .page-dashboard .stat-grid .stat-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+    .page-dashboard .dc-quick  { order: 1; }
+    .page-dashboard .dc-attend { order: 2; }
+    .page-dashboard .dc-trend  { order: 3; }
+    .page-dashboard .dc-fin    { order: 4; }
+    .page-dashboard .dc-tasks  { order: 5; }
+    .page-dashboard .dc-act    { order: 6; }
+  }
+
+  @media (min-width: 900px) {
+    body.page-dashboard { padding: 0; }
+    .page-dashboard .app-shell { max-width: none; margin: 0; }
+    .page-dashboard .topbar-desktop { padding: 20px 28px 0; }
+    .page-dashboard .main-content { padding: 4px 28px 36px; }
+    .page-dashboard .dash-wrap { max-width: none; }
+    .page-dashboard .dash-wrap .card { margin: 0; padding: 22px; }
+    .page-dashboard .dash-wrap .card.dashboard-hero { padding: 26px; margin-bottom: 20px; }
+    .page-dashboard .dashboard-hero h1 { font-size: 24px !important; }
+    .page-dashboard .stat-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; margin-top: 22px; }
+    .page-dashboard .stat-card.tinted { padding: 16px; }
+    .page-dashboard .stat-card.tinted .num { font-size: 28px; }
+    .page-dashboard .stat-card.tinted .label { font-size: 13px; }
+
+    .page-dashboard .dash-grid {
+      display: grid; align-items: start; gap: 20px;
+      grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    }
+    .page-dashboard .dash-col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+
+    .page-dashboard .quick-item { padding: 10px 4px; border-radius: 12px; }
+    .page-dashboard .quick-item:hover { background: #f5f8ff; }
+    .page-dashboard .trend-chart { --chart-h: 200px; --bar-max: 148px; gap: 16px; }
+    .page-dashboard .tr-bar { max-width: 64px; }
+    .page-dashboard .tr-amt, .page-dashboard .tr-lbl { font-size: 12px; }
+  }
+  @media (min-width: 1500px) {
+    .page-dashboard .quick-grid { grid-template-columns: repeat(8, 1fr); }
+  }
+
+  /* ================= Premium redesign v2 — dashboard ================= */
+
+  /* Hero: rounder corners + a fine inner glass highlight so the banner
+     reads as glass/metal rather than a flat gradient block. */
+  .page-dashboard .card.dashboard-hero { border-radius: 22px; }
+  .page-dashboard .card.dashboard-hero::after {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+  }
+  .page-dashboard .dashboard-hero .date-pill::before {
+    content: "📅"; display: block; font-size: 14px; margin-bottom: 3px; line-height: 1;
+  }
+
+  /* Section titles: small gradient icon badge instead of a plain bar,
+     colour-matched to each card so the eye can scan sections at a glance. */
+  .page-dashboard .section-label {
+    display: flex; align-items: center; gap: 9px;
+    padding-left: 0; margin: 0 0 16px;
+    font-size: 12.5px; font-weight: 700; letter-spacing: .04em; color: #475569;
+  }
+  .page-dashboard .section-label::before {
+    content: "●"; position: static;
+    width: 26px; height: 26px; min-width: 26px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12.5px; line-height: 1; color: #fff;
+    background: linear-gradient(135deg,#4f46e5,#7c3aed);
+    box-shadow: 0 3px 8px rgba(79,70,229,.28);
+  }
+  .page-dashboard .dc-quick  .section-label::before { content: "⚡"; background: linear-gradient(135deg,#f59e0b,#ea580c); box-shadow: 0 3px 8px rgba(234,88,12,.30); }
+  .page-dashboard .dc-trend  .section-label::before { content: "📈"; background: linear-gradient(135deg,#2563eb,#0ea5e9); box-shadow: 0 3px 8px rgba(37,99,235,.30); }
+  .page-dashboard .dc-act    .section-label::before { content: "🕒"; background: linear-gradient(135deg,#8b5cf6,#6366f1); box-shadow: 0 3px 8px rgba(99,102,241,.30); }
+  .page-dashboard .dc-tasks  .section-label::before { content: "📌"; background: linear-gradient(135deg,#ef4444,#f97316); box-shadow: 0 3px 8px rgba(239,68,68,.30); }
+  .page-dashboard .dc-attend .section-label::before { content: "✅"; background: linear-gradient(135deg,#10b981,#059669); box-shadow: 0 3px 8px rgba(16,185,129,.30); }
+  .page-dashboard .dc-fin    .section-label::before { content: "💹"; background: linear-gradient(135deg,#0891b2,#0d9488); box-shadow: 0 3px 8px rgba(8,145,178,.30); }
+
+  /* Content cards: deeper, softer elevation + a thin colour-matched
+     accent line along the top edge so each card feels designed on
+     purpose rather than a generic white box. */
+  .page-dashboard .dash-wrap .card:not(.dashboard-hero) {
+    position: relative; overflow: hidden;
+    border-radius: 20px;
+    border: 1px solid rgba(15,23,42,0.06);
+    box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 12px 28px rgba(15,23,42,0.06);
+  }
+  .page-dashboard .dash-wrap .card:not(.dashboard-hero)::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, currentColor, transparent);
+    opacity: .55;
+  }
+  .page-dashboard .dc-quick::before  { color: #ea580c; }
+  .page-dashboard .dc-trend::before  { color: #2563eb; }
+  .page-dashboard .dc-act::before    { color: #6366f1; }
+  .page-dashboard .dc-tasks::before  { color: #ef4444; }
+  .page-dashboard .dc-attend::before { color: #059669; }
+  .page-dashboard .dc-fin::before    { color: #0891b2; }
+
+  /* Stat cards: crisper numbers, a slightly larger icon, gentle pop on hover */
+  .page-dashboard .stat-card.tinted { padding: 16px; border-radius: 16px; }
+  .page-dashboard .stat-card.tinted .num { font-variant-numeric: tabular-nums; }
+  .page-dashboard .stat-card.tinted .stat-icon { width: 34px; height: 34px; font-size: 16px; transition: transform .15s ease; }
+  .page-dashboard .stat-card.tinted:hover .stat-icon { transform: scale(1.08); }
+
+  /* Quick actions: real tiles with their own border + shadow instead of
+     bare icon-over-label, so the grid reads as a toolbar of buttons. */
+  .page-dashboard .quick-grid { gap: 12px; }
+  .page-dashboard .quick-item {
+    background: #fff; border: 1px solid rgba(15,23,42,0.06); border-radius: 14px;
+    padding: 14px 6px 12px; box-shadow: 0 2px 6px rgba(15,23,42,0.05);
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .page-dashboard .quick-item:hover, .page-dashboard .quick-item:active {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(15,23,42,0.10);
+    border-color: rgba(79,70,229,0.25);
+  }
+  .page-dashboard .quick-item .qi-icon {
+    width: 44px; height: 44px; border-radius: 13px; font-size: 19px;
+    box-shadow: 0 3px 8px rgba(15,23,42,0.10), inset 0 0 0 1px rgba(255,255,255,0.5);
+  }
+
+  /* Fee-trend bars: rounder tops, bolder value on hover */
+  .page-dashboard .tr-bar { border-radius: 8px 8px 3px 3px; }
+  .page-dashboard .tr-col:hover .tr-amt { color: #1d4ed8; font-weight: 700; }
+
+  /* Recent activity / urgent tasks: left-to-right hover wash + icons that
+     lift slightly, arrow nudges forward to invite the click. */
+  .page-dashboard .activity-row, .page-dashboard .task-row {
+    padding: 12px 4px; border-radius: 12px; margin: 0 -4px;
+    transition: background .15s ease, padding-left .15s ease;
+  }
+  .page-dashboard .activity-row:hover, .page-dashboard .task-row:hover {
+    background: linear-gradient(90deg, rgba(79,70,229,0.07), transparent);
+    padding-left: 10px;
+  }
+  .page-dashboard .activity-row .ai-icon, .page-dashboard .task-row .task-ic {
+    box-shadow: 0 2px 6px rgba(15,23,42,0.10);
+  }
+  .page-dashboard .task-row .task-count { font-weight: 800; }
+  .page-dashboard .activity-row .arrow, .page-dashboard .task-row .arrow { transition: transform .15s ease; }
+  .page-dashboard .activity-row:hover .arrow, .page-dashboard .task-row:hover .arrow { transform: translateX(3px); color: #6366f1; }
+
+  /* Attendance donut + legend: soft shadow under the ring, hoverable legend rows */
+  .page-dashboard .donut-row svg circle { filter: drop-shadow(0 2px 4px rgba(15,23,42,0.10)); }
+  .page-dashboard .donut-legend .dl-row { padding: 6px 8px; border-radius: 8px; transition: background .15s ease; }
+  .page-dashboard .donut-legend .dl-row:hover { background: #f8fafc; }
+  .page-dashboard .donut-legend .dl-dot { box-shadow: 0 0 0 3px rgba(0,0,0,0.03); }
+
+  /* Income/expense summary: hoverable rows, tabular figures, a richer progress bar */
+  .page-dashboard .dc-fin .fs-row { padding: 10px 4px; border-radius: 10px; transition: background .15s ease; }
+  .page-dashboard .dc-fin .fs-row:hover { background: #f8fafc; }
+  .page-dashboard .dc-fin .fs-row .fs-ic { box-shadow: 0 2px 6px rgba(15,23,42,0.08); }
+  .page-dashboard .dc-fin .fs-row .fs-val { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .page-dashboard .dc-fin .fs-bar { height: 10px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.06); }
+  .page-dashboard .dc-fin .fs-bar-fill { background: linear-gradient(90deg,#10b981,#059669); box-shadow: 0 1px 3px rgba(5,150,105,0.4); }
+
+  /* "সব দেখুন / ব্যয় ব্যবস্থাপনা" style buttons at the foot of cards: icon
+     gets its own soft badge instead of sitting bare next to the text. */
+  .page-dashboard .menu-btn {
+    border-radius: 12px; background: #f8fafc; border: 1px solid rgba(15,23,42,0.06);
+    padding: 14px 16px;
+  }
+  .page-dashboard .menu-btn .icon {
+    width: 30px; height: 30px; border-radius: 9px; font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(79,70,229,0.10); flex-shrink: 0;
+  }
+</style>
+
+<div class="app-confirm-overlay" id="appConfirmOverlay">
+  <div class="app-confirm-box">
+    <div class="app-confirm-icon">⚠️</div>
+    <div class="app-confirm-msg" id="appConfirmMsg"></div>
+    <div class="app-confirm-actions">
+      <button type="button" class="app-confirm-cancel" id="appConfirmCancel">বাতিল</button>
+      <button type="button" class="app-confirm-ok" id="appConfirmOk">নিশ্চিত</button>
+    </div>
+  </div>
+</div>
+<script>
+  // Used in place of onsubmit="return confirm('...')" on destructive forms:
+  // onsubmit="return appConfirm(this, '...')". Shows the styled modal above
+  // instead of the browser's native confirm() popup; on "নিশ্চিত" it submits
+  // the real form (bypassing this same handler so it doesn't loop back
+  // through the modal), on "বাতিল" or overlay-click it does nothing.
+  function appConfirm(form, message) {
+    var overlay = document.getElementById("appConfirmOverlay");
+    var msgEl = document.getElementById("appConfirmMsg");
+    var okBtn = document.getElementById("appConfirmOk");
+    var cancelBtn = document.getElementById("appConfirmCancel");
+    if (!overlay || !msgEl || !okBtn || !cancelBtn) return confirm(message); // fallback
+    msgEl.textContent = message;
+    overlay.classList.add("open");
+    function close() {
+      overlay.classList.remove("open");
+      okBtn.removeEventListener("click", onOk);
+      cancelBtn.removeEventListener("click", onCancel);
+      overlay.removeEventListener("click", onOverlay);
+    }
+    function onOk() {
+      close();
+      HTMLFormElement.prototype.submit.call(form);
+    }
+    function onCancel() { close(); }
+    function onOverlay(e) { if (e.target === overlay) close(); }
+    okBtn.addEventListener("click", onOk);
+    cancelBtn.addEventListener("click", onCancel);
+    overlay.addEventListener("click", onOverlay);
+    return false;
+  }
+</script>
+
+<!--
+  Bangla-digit guard for English-only number fields (session/year, roll,
+  mobile numbers, result-lookup code, founded year). This lives here
+  (rather than in _script.ejs) because _style.ejs is the one partial every
+  real page already includes, so the guard applies everywhere automatically
+  without touching each view. It does NOT affect <input type="number">
+  fields (marks, fees amounts) — browsers already reject non-ASCII digits
+  in those natively.
+-->
+<script>
+(function () {
+  var EN_DIGIT_FIELD_NAMES = [
+    "session", "roll", "phone", "fatherPhone", "motherPhone", "contactPhone",
+    "emergencyPhone", "code", "foundedYear"
+  ];
+  var BN_DIGIT_RE = /[০-৯]/;
+  var BN_DIGIT_RE_G = /[০-৯]/g;
+
+  function isGuardedField(el) {
+    if (!el || el.tagName !== "INPUT") return false;
+    if (el.type === "tel") return true;
+    return EN_DIGIT_FIELD_NAMES.indexOf(el.name) !== -1;
+  }
+
+  function showWarning(el) {
+    var warn = el._bnDigitWarn;
+    if (!warn) {
+      warn = document.createElement("div");
+      warn.textContent = "এই ঘরে বাংলা সংখ্যা লেখা যাবে না — ইংরেজি সংখ্যা (0-9) লিখুন";
+      warn.style.cssText = "color:#dc2626;font-size:12px;margin:2px 0 8px;";
+      el.insertAdjacentElement("afterend", warn);
+      el._bnDigitWarn = warn;
+    }
+    clearTimeout(el._bnDigitWarnTimer);
+    el._bnDigitWarnTimer = setTimeout(function () {
+      if (warn && warn.parentNode) warn.parentNode.removeChild(warn);
+      el._bnDigitWarn = null;
+    }, 3000);
+  }
+
+  document.addEventListener("input", function (e) {
+    var el = e.target;
+    if (!isGuardedField(el) || !BN_DIGIT_RE.test(el.value)) return;
+    var pos = el.selectionStart;
+    var before = el.value;
+    el.value = before.replace(BN_DIGIT_RE_G, "");
+    var removed = before.length - el.value.length;
+    try { el.setSelectionRange(pos - removed, pos - removed); } catch (err) {}
+    showWarning(el);
+  });
+})();
+</script>
+<script>
+  // Remembers which collapsible cards (details.acc) were opened/closed, so a
+  // form submit that reloads the page doesn't fold everything back up.
+  // Kept per browser tab (sessionStorage) — a fresh visit starts from the
+  // defaults set in the page itself. A card marked data-force-open (it holds
+  // a result/error message, or only exists because the user asked for it)
+  // is always shown open and never overridden by a remembered "closed".
+  document.addEventListener('DOMContentLoaded', function () {
+    var store;
+    try { store = window.sessionStorage; } catch (e) { return; }
+    document.querySelectorAll('details.acc').forEach(function (d) {
+      if (d.hasAttribute('data-force-open')) { d.open = true; return; }
+      var s = d.querySelector('summary');
+      if (!s) return;
+      // drop any "(…)" suffix (counts, session) so the key stays stable
+      var label = s.textContent.replace(/\s*[(（][\s\S]*$/, '').replace(/\s+/g, ' ').trim();
+      var key = 'acc:' + location.pathname + '|' + label;
+      try {
+        var v = store.getItem(key);
+        if (v === '1') d.open = true;
+        else if (v === '0') d.open = false;
+      } catch (e) {}
+      d.addEventListener('toggle', function () {
+        try { store.setItem(key, d.open ? '1' : '0'); } catch (e) {}
+      });
+    });
+  });
+</script>

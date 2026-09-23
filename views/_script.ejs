@@ -1,0 +1,15 @@
+<script>
+  document.querySelectorAll('form').forEach(function (form) {
+    form.addEventListener('submit', function () {
+      const btn = form.querySelector('button[type="submit"]');
+      if (btn && !btn.disabled) {
+        // let the browser submit first, then lock the button
+        setTimeout(function () {
+          btn.disabled = true;
+          btn.dataset.originalText = btn.dataset.originalText || btn.textContent;
+          btn.textContent = 'অপেক্ষা করুন...';
+        }, 0);
+      }
+    });
+  });
+</script>

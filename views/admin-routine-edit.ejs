@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>রুটিন — <%= cls.name %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+<style>
+  .day-block { border: 1px solid #eef2f7; border-radius: 10px; padding: 12px; margin-bottom: 14px; }
+  .day-block.off { opacity: 0.5; }
+  .day-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .day-head strong { font-size: 15px; }
+  .period-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .period-row .pnum { flex: 0 0 60px; font-size: 12px; color: #555; }
+  .period-row input, .period-row select { flex: 1; margin: 0; }
+</style>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/admin/routine">⬅️ ফিরে যান</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>📅 <%= cls.name %> — সাপ্তাহিক রুটিন</h1>
+    <p class="sub">শিফট: <%= shift === 'morning' ? '🌅 মর্নিং শিফট' : '🏫 ডে শিফট' %> (শিফট বদলাতে <a href="/admin/routine">ক্লাস রুটিন পেজে</a> যান)</p>
+    <div class="row" style="gap:8px; margin-bottom:14px;">
+      <a href="/admin/routine/<%= cls.slug %>/pdf?inline=1" target="_blank" class="btn btn-primary" style="flex:1;">👁️ পিডিএফ দেখুন / প্রিন্ট করুন</a>
+      <a href="/admin/routine/<%= cls.slug %>/pdf" class="btn btn-secondary" style="flex:1;">📄 ডাউনলোড</a>
+    </div>
+    <% if (saved) { %>
+      <p style="background:#ecfdf5; color:#047857; padding:10px 12px; border-radius:8px; font-size:14px; margin:0 0 14px;">✅ রুটিন সেভ হয়েছে।</p>
+    <% } %>
+
+    <form method="POST" action="/admin/routine/<%= cls.slug %>/save">
+      <% weekdays.forEach(day => { %>
+        <% const isOff = routine.offDays.includes(day.key); %>
+        <% const daySchedule = routine.schedule[day.key] || []; %>
+        <div class="day-block <%= isOff ? 'off' : '' %>">
+          <div class="day-head">
+            <strong><%= day.label %></strong>
+            <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#888; font-weight:400;">
+              <input type="checkbox" name="offDays" value="<%= day.key %>" style="width:auto; margin:0;" <%= isOff ? 'checked' : '' %> />
+              ছুটির দিন
+            </label>
+          </div>
+          <% for (let i = 0; i < periodCount; i++) { %>
+            <% const p = daySchedule[i] || { subject: '', teacher: '' }; %>
+            <div class="period-row">
+              <span class="pnum"><%= periodOrdinal(i + 1) %> <% if (periodTimes[i]) { %><br><%= periodTimes[i] %><% } %></span>
+              <input type="text" name="subject_<%= day.key %>_<%= i %>" value="<%= p.subject %>" placeholder="বিষয়" />
+              <select name="teacher_<%= day.key %>_<%= i %>">
+                <option value="">— শিক্ষক নির্বাচন করুন —</option>
+                <% websiteTeachers.forEach(t => { %>
+                  <option value="<%= t.name %>" <%= p.teacher === t.name ? 'selected' : '' %>><%= t.name %></option>
+                <% }) %>
+                <% if (p.teacher && !websiteTeachers.some(t => t.name === p.teacher)) { %>
+                  <option value="<%= p.teacher %>" selected><%= p.teacher %> (তালিকায় নেই)</option>
+                <% } %>
+              </select>
+            </div>
+          <% } %>
+        </div>
+      <% }) %>
+
+      <button type="submit" class="btn btn-primary btn-block">রুটিন সেভ করুন</button>
+    </form>
+  </div>
+
+    </div>
+  </div>
+</body>
+</html>

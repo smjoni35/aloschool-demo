@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>শিক্ষক বেতন ম্যানেজমেন্ট</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+<style>
+  .salary-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+  .salary-row:last-child { border-bottom: none; }
+  .salary-row .name { flex: 1; }
+  .salary-row .desig { color: #999; font-size: 12px; }
+  .salary-row form { display: flex; gap: 6px; align-items: center; }
+  .salary-row input[type="number"] { width: 110px; margin: 0; }
+</style>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/admin/salary/dues">📉 বকেয়া / অগ্রিম রিপোর্ট</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>💰 শিক্ষক বেতন ম্যানেজমেন্ট</h1>
+    <p class="sub" style="margin:2px 0 0;">প্রতি মাসের বেতন ধার্য করুন, আর শিক্ষকরা যখনই যে পরিমাণ টাকা তুলবেন (পুরোটা, আংশিক, অগ্রিম, বা মাসে একাধিকবার) — সব এখানে হিসাব থাকবে।</p>
+  </div>
+
+  <details class="card acc">
+    <summary>১. শিক্ষকদের মাসিক বেতন নির্ধারণ</summary>
+    <p class="sub" style="margin:0 0 10px;">প্রতিটা শিক্ষকের জন্য মাসিক বেতনের পরিমাণ বসান। যেই শিক্ষকরা কোচিং সেন্টারেও ক্লাস নেন, তাদের জন্য কোচিং বেতনও আলাদাভাবে বসান — দুটোই একসাথে একই হিসাবে (বকেয়া/হিস্টোরি) যোগ হবে। যাদের কোনো বেতনই ০ থাকবে, তাদের নামে সেটা বসানো হবে না।</p>
+    <% if (amountSaved) { %>
+      <p style="background:#f0fdf4; color:#15803d; padding:10px; border-radius:8px; font-size:14px; margin:0 0 10px;">✅ সংরক্ষণ করা হয়েছে।</p>
+    <% } %>
+    <% if (teachers.length === 0) { %>
+      <p class="empty">এখনো কোনো শিক্ষক যোগ করা হয়নি — আগে <a href="/admin/website">ওয়েবসাইট পেজ থেকে</a> শিক্ষক যোগ করুন।</p>
+    <% } else { %>
+      <% teachers.forEach(t => { %>
+        <div class="salary-row" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <div class="name">
+            <strong><%= t.name %></strong>
+            <% if (t.designation) { %><span class="desig"> · <%= t.designation %></span><% } %>
+            <% if (Number(t.coachingMonthlySalary) > 0) { %><span class="pill" style="margin-left:6px;">কোচিং</span><% } %>
+          </div>
+          <form method="POST" action="/admin/salary/<%= t.id %>/set-amount" style="display:flex; gap:8px; align-items:flex-end;">
+            <div style="flex:1;">
+              <label style="margin:0 0 3px; font-size:12px;">মাসিক বেতন</label>
+              <input type="number" name="monthlySalary" min="0" value="<%= t.monthlySalary || 0 %>" />
+            </div>
+            <div style="flex:1;">
+              <label style="margin:0 0 3px; font-size:12px;">কোচিং বেতন</label>
+              <input type="number" name="coachingMonthlySalary" min="0" value="<%= t.coachingMonthlySalary || 0 %>" />
+            </div>
+            <button type="submit" class="btn btn-secondary" style="padding:10px 12px; font-size:13px; flex:0 0 auto;">সেভ</button>
+          </form>
+        </div>
+      <% }) %>
+    <% } %>
+  </details>
+
+  <details class="card acc" open<% if (monthlyResult) { %> data-force-open<% } %>>
+    <summary>২. মাসিক বেতন বসান</summary>
+    <p class="sub" style="margin:0 0 10px;">যাদের বেতন উপরে নির্ধারণ করা আছে, তাদের সবার নামে নির্বাচিত মাসের বেতন একসাথে "পাওনা" হিসেবে বসিয়ে দেবে — একই সাথে যাদের কোচিং বেতনও নির্ধারণ করা আছে, তাদের নামে কোচিং বেতনও বসবে। একই মাসের জন্য দ্বিতীয়বার চাপলে দ্বৈত এন্ট্রি হবে না।</p>
+    <% if (monthlyResult) { %>
+      <p style="background:#f0fdf4; color:#15803d; padding:10px; border-radius:8px; font-size:14px;">
+        ✅ <%= monthlyResult.teachersCharged %> জন শিক্ষকের নামে মাসিক বেতন
+        <% if (monthlyResult.coachingCharged > 0) { %> ও <%= monthlyResult.coachingCharged %> জন শিক্ষকের নামে কোচিং বেতন<% } %>
+        বসানো হয়েছে।
+        <% if (monthlyResult.teachersSkipped.length) { %>
+          <br />বাদ পড়েছে (কোনো বেতন নির্ধারণ করা নেই): <%= monthlyResult.teachersSkipped.join(', ') %>
+        <% } %>
+      </p>
+    <% } %>
+    <form method="POST" action="/admin/salary/generate-monthly" class="row" style="align-items:flex-end;">
+      <div>
+        <label>মাস</label>
+        <input type="month" name="month" required />
+      </div>
+      <div style="flex:0 0 auto;">
+        <button type="submit" class="btn btn-primary">বসান</button>
+      </div>
+    </form>
+  </details>
+
+  <details class="card acc">
+    <summary>৩. শিক্ষকভিত্তিক বেতন হিস্টোরি ও উত্তোলন</summary>
+    <p class="sub" style="margin:0 0 10px;">যেকোনো শিক্ষকের নামে ঢুকে তার বেতন উত্তোলন (আংশিক/অগ্রিম/একাধিকবার) এন্ট্রি করুন, বা আগের হিস্টোরি দেখুন।</p>
+    <% if (teachers.length === 0) { %>
+      <p class="empty">এখনো কোনো শিক্ষক যোগ করা হয়নি।</p>
+    <% } else { %>
+      <% teachers.forEach(t => { %>
+        <a href="/admin/salary/<%= t.id %>" class="menu-btn">
+          <span class="icon">🏫</span> <%= t.name %> <span class="arrow">›</span>
+        </a>
+      <% }) %>
+    <% } %>
+  </details>
+
+    </div>
+  </div>
+</body>
+</html>

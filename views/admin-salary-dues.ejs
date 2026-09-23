@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>শিক্ষক বেতন — বকেয়া / অগ্রিম রিপোর্ট</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/admin/salary">← বেতন ম্যানেজমেন্ট</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>📉 বকেয়া / অগ্রিম রিপোর্ট</h1>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="num" style="color:#b91c1c;">৳ <%= totalDue %></div>
+        <div class="label">মোট বকেয়া পাওনা (শিক্ষকদের প্রাপ্য)</div>
+      </div>
+      <div class="stat-card">
+        <div class="num" style="color:#2563eb;">৳ <%= totalAdvance %></div>
+        <div class="label">মোট অগ্রিম দেওয়া</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <% if (rows.length === 0) { %>
+      <p class="empty">কারো বকেয়া বা অগ্রিম নেই — সব হিসাব সমান।</p>
+    <% } else { %>
+      <table>
+        <thead>
+          <tr><th>নাম</th><th>অবস্থা</th><th></th></tr>
+        </thead>
+        <tbody>
+          <% rows.forEach(r => { %>
+            <tr>
+              <td><%= r.teacher.name %></td>
+              <td style="color: <%= r.balance.due > 0 ? '#b91c1c' : '#2563eb' %>; font-weight:600;">
+                <% if (r.balance.due > 0) { %>বকেয়া ৳ <%= r.balance.due %><% } else { %>অগ্রিম ৳ <%= Math.abs(r.balance.due) %><% } %>
+              </td>
+              <td><a href="/admin/salary/<%= r.teacher.id %>" class="btn btn-secondary">দেখুন</a></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+
+    </div>
+  </div>
+</body>
+</html>

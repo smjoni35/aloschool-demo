@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ফলাফল — <%= exam.examName %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+    <a href="/exams/<%= exam.key %>">⬅ পরীক্ষা</a>
+  </div>
+
+  <div class="card">
+    <h1>ফলাফল</h1>
+    <p class="sub"><%= exam.schoolName %> — <%= exam.className %> — <%= exam.examName %></p>
+
+    <% if (rows.length === 0) { %>
+      <p class="empty">এই ক্লাসে কোনো শিক্ষার্থী নেই।</p>
+    <% } else { %>
+      <a href="/exams/<%= exam.key %>/print-all" target="_blank" class="btn btn-primary btn-block">🖨️ সবার প্রিন্ট করুন</a>
+      <a href="/exams/<%= exam.key %>/pdf-all" class="btn btn-secondary btn-block">⬇ সবার PDF ডাউনলোড করুন (ZIP)</a>
+      <a href="/result?exam=<%= exam.key %>" target="_blank" class="btn btn-secondary btn-block">পাবলিক রেজাল্ট পেজ</a>
+      <table class="results-table">
+        <thead>
+          <tr><th>অবস্থান</th><th>রোল</th><th>নাম</th><th>মোট</th><th>%</th><th>গ্রেড</th><th></th></tr>
+        </thead>
+        <tbody>
+        <% rows.forEach(r => { %>
+          <tr>
+            <td><%= r.position ? r.position : '—' %></td>
+            <td><%= r.student.roll %></td>
+            <td><%= r.student.name %></td>
+            <td><%= r.totalObtained %>/<%= r.totalFull %><% if (!r.allEntered) { %> <span style="color:#b91c1c; font-size:11px;">(অসম্পূর্ণ)</span><% } %></td>
+            <td><%= r.pct.toFixed(1) %>%</td>
+            <td><%= r.overall.grade %></td>
+            <td>
+              <div class="subject-actions">
+                <a href="/exams/<%= exam.key %>/student/<%= r.student.id %>/print" target="_blank" class="btn btn-secondary" title="প্রিন্ট">🖨️</a>
+                <a href="/exams/<%= exam.key %>/student/<%= r.student.id %>/pdf?inline=1" target="_blank" class="btn btn-secondary" title="PDF প্রিভিউ">👁️</a>
+                <a href="/exams/<%= exam.key %>/student/<%= r.student.id %>/pdf" class="btn btn-secondary" title="PDF ডাউনলোড">⬇️</a>
+                <a href="/exams/<%= exam.key %>/student/<%= r.student.id %>/edit-marks" class="btn btn-secondary" title="এডিট">✏️</a>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+
+    </div>
+  </div>
+</body>
+</html>

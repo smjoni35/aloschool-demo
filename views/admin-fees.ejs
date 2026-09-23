@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ফি ম্যানেজমেন্ট</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/admin/fees/dues">📉 বকেয়া রিপোর্ট</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>💳 ফি ম্যানেজমেন্ট</h1>
+    <p class="sub" style="margin:2px 0 16px;">ক্লাসভিত্তিক ফি নির্ধারণ, মাসিক বেতন ও পরীক্ষার ফি বসানো — সব এখান থেকে।</p>
+
+    <form method="GET" action="/admin/fees" class="row" style="align-items:flex-end;">
+      <div>
+        <label>সেশন</label>
+        <input type="text" name="session" value="<%= session %>" placeholder="যেমন 2026" />
+      </div>
+      <div style="flex:0 0 auto;">
+        <button type="submit" class="btn btn-secondary">দেখুন</button>
+      </div>
+    </form>
+  </div>
+
+  <details class="card acc">
+    <summary>১. ক্লাসভিত্তিক ফি স্ট্রাকচার (সেশন: <%= session %>)</summary>
+    <p class="sub" style="margin:0 0 10px;">প্রতিটা ক্লাসের জন্য ভর্তি ফি, সেশন ফি, মাসিক বেতন ও পরীক্ষার ফি আলাদাভাবে ঠিক করুন।</p>
+    <% if (classes.length === 0) { %>
+      <p class="empty">এখনো কোনো ক্লাস তৈরি করা হয়নি।</p>
+    <% } else { %>
+      <% classes.forEach(cls => { %>
+        <a href="/admin/fees/structure/<%= cls.slug %>?session=<%= encodeURIComponent(session) %>" class="menu-btn">
+          <span class="icon">🏫</span> <%= cls.name %> <span class="arrow">›</span>
+        </a>
+      <% }) %>
+    <% } %>
+  </details>
+
+  <details class="card acc" open<% if (monthlyResult) { %> data-force-open<% } %>>
+    <summary>২. মাসিক বেতন বসান</summary>
+    <p class="sub" style="margin:0 0 10px;">নির্বাচিত মাসের বেতন (আর গাড়ি সুবিধা চালু থাকা শিক্ষার্থীদের গাড়ি ভাড়া) প্রতিটা ক্লাসের সব সক্রিয় শিক্ষার্থীর নামে একসাথে "বকেয়া" হিসেবে বসিয়ে দেবে। একই মাসের জন্য দ্বিতীয়বার চাপলে আগে যাদের বসানো হয়েছে তাদের বাদ দিয়ে বাকিদের বসাবে — দ্বৈত এন্ট্রি হবে না।</p>
+    <% if (monthlyResult) { %>
+      <p style="background:#f0fdf4; color:#15803d; padding:10px; border-radius:8px; font-size:14px;">
+        ✅ <%= monthlyResult.studentsCharged %> জন শিক্ষার্থীর নামে বেতন বসানো হয়েছে।
+        <% if (monthlyResult.classesSkipped.length) { %>
+          <br />বাদ পড়েছে (ফি নির্ধারণ করা নেই): <%= monthlyResult.classesSkipped.join(', ') %>
+        <% } %>
+      </p>
+    <% } %>
+    <form method="POST" action="/admin/fees/generate-monthly" class="row" style="align-items:flex-end;">
+      <input type="hidden" name="session" value="<%= session %>" />
+      <div>
+        <label>মাস</label>
+        <input type="month" name="month" required />
+      </div>
+      <div style="flex:0 0 auto;">
+        <button type="submit" class="btn btn-primary">বসান</button>
+      </div>
+    </form>
+  </details>
+
+  <details class="card acc" <% if (examResult) { %>open data-force-open<% } %>>
+    <summary>৩. পরীক্ষার ফি বসান</summary>
+    <p class="sub" style="margin:0 0 10px;">পরীক্ষার নাম (ত্রি মাসিক/অর্ধ বার্ষিক/বার্ষিক) থেকে ধরণ বুঝে নিয়ে, সেই ক্লাসের ফি স্ট্রাকচারে নির্ধারিত অ্যামাউন্ট অনুযায়ী প্রতিটা অংশগ্রহণকারী শিক্ষার্থীর নামে বসাবে।</p>
+    <% if (examResult) { %>
+      <p style="background:#f0fdf4; color:#15803d; padding:10px; border-radius:8px; font-size:14px;">
+        ✅ <%= examResult.studentsCharged %> জন শিক্ষার্থীর নামে পরীক্ষার ফি বসানো হয়েছে।
+        <% if (examResult.classesSkipped.length) { %>
+          <br />বাদ পড়েছে: <%= examResult.classesSkipped.join(', ') %>
+        <% } %>
+      </p>
+    <% } %>
+    <% if (examGroups.length === 0) { %>
+      <p class="empty">এখনো কোনো পরীক্ষা তৈরি করা হয়নি।</p>
+    <% } else { %>
+      <form method="POST" action="/admin/fees/generate-exam" class="row" style="align-items:flex-end;">
+        <div>
+          <label>পরীক্ষা</label>
+          <select name="examChoice" required>
+            <% examGroups.forEach(g => { %>
+              <option value="<%= g.examName %>||<%= g.session || '' %>"><%= g.examName %> <% if (g.session) { %>(<%= g.session %>)<% } %> — <%= g.entries.length %>টা ক্লাস</option>
+            <% }) %>
+          </select>
+        </div>
+        <div style="flex:0 0 auto;">
+          <button type="submit" class="btn btn-primary">বসান</button>
+        </div>
+      </form>
+    <% } %>
+  </details>
+
+    </div>
+  </div>
+</body>
+</html>

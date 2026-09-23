@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ঋণের বিবরণ — <%= loan.lender %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/admin/loans">‹ ঋণ ব্যবস্থাপনা</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>🏦 <%= loan.lender %></h1>
+    <p style="color:#666;">নেওয়ার তারিখ: <%= loan.date %> &nbsp;•&nbsp; ধরন: <%= loan.repaymentType %><% if (loan.interestRate) { %> &nbsp;•&nbsp; সুদ: <%= loan.interestRate %>%<% } %></p>
+    <% if (loan.note) { %><p style="color:#666;">নোট: <%= loan.note %></p><% } %>
+
+    <div class="fs-row"><span class="fs-ic" style="background:#ede9fe; color:#7c3aed;">📋</span> মোট ঋণ <span class="fs-val">৳<%= loan.amount.toLocaleString('en-US') %></span></div>
+    <div class="fs-row"><span class="fs-ic" style="background:#d1fae5; color:#059669;">✅</span> মোট পরিশোধিত <span class="fs-val" style="color:#16a34a;">৳<%= loan.totalPaid.toLocaleString('en-US') %></span></div>
+    <div class="fs-row" style="border-top:1px solid #eee; margin-top:4px; padding-top:10px;"><span class="fs-ic" style="background:#fee2e2; color:#b91c1c;">📤</span> বাকি আছে <span class="fs-val" style="color:#b91c1c;">৳<%= loan.remaining.toLocaleString('en-US') %></span></div>
+
+    <form method="POST" action="/admin/loans/<%= loan.id %>/delete" onsubmit="return appConfirm(this, 'এই ঋণটি সম্পূর্ণভাবে মুছে ফেলতে চান? এর সাথে সব কিস্তির হিসাবও মুছে যাবে।')" style="margin-top:14px;">
+      <button type="submit" class="btn btn-danger">ঋণ এন্ট্রি মুছুন</button>
+    </form>
+  </div>
+
+  <% if (loan.remaining > 0) { %>
+  <div class="card">
+    <h2 style="margin-top:0;">কিস্তি / পরিশোধ যোগ করুন</h2>
+    <% if (saved) { %><p style="color:#16a34a; font-weight:600;">✓ পরিশোধ যোগ হয়েছে।</p><% } %>
+    <form method="POST" action="/admin/loans/<%= loan.id %>/payment/add">
+      <div class="row">
+        <div>
+          <label>পরিমাণ</label>
+          <input type="number" name="amount" min="1" step="1" max="<%= loan.remaining %>" required />
+        </div>
+        <div>
+          <label>তারিখ</label>
+          <input type="date" name="date" value="<%= new Date().toISOString().slice(0,10) %>" />
+        </div>
+      </div>
+      <label style="margin-top:10px;">নোট (ঐচ্ছিক)</label>
+      <input type="text" name="note" placeholder="যেমন: সেপ্টেম্বর মাসের কিস্তি" />
+      <button type="submit" class="btn btn-primary btn-block">পরিশোধ যোগ করুন</button>
+    </form>
+  </div>
+  <% } %>
+
+  <div class="card">
+    <h2 style="margin-top:0;">পরিশোধের হিস্টোরি</h2>
+    <% if (loan.payments.length === 0) { %>
+      <p class="empty">এখনো কোনো পরিশোধ যোগ করা হয়নি।</p>
+    <% } else { %>
+      <table>
+        <thead>
+          <tr><th>তারিখ</th><th>নোট</th><th>পরিমাণ</th><th></th></tr>
+        </thead>
+        <tbody>
+          <% loan.payments.forEach(function (p) { %>
+            <tr>
+              <td><%= p.date %></td>
+              <td><%= p.note || '-' %></td>
+              <td style="color:#16a34a; font-weight:600;">৳ <%= p.amount.toLocaleString('en-US') %></td>
+              <td>
+                <form method="POST" action="/admin/loans/<%= loan.id %>/payment/<%= p.id %>/delete" onsubmit="return appConfirm(this, 'এই পরিশোধের এন্ট্রি মুছে ফেলতে চান?')">
+                  <button type="submit" class="btn btn-danger">মুছুন</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+
+    </div>
+  </div>
+</body>
+</html>

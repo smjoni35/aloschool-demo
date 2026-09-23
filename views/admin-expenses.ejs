@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ব্যয় ব্যবস্থাপনা</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>🧾 নতুন খরচ যোগ করুন</h1>
+    <% if (saved) { %><p style="color:#16a34a; font-weight:600;">✓ খরচ যোগ হয়েছে।</p><% } %>
+    <form method="POST" action="/admin/expenses/add">
+      <label>খাত (Category)</label>
+      <select name="category" id="categorySelect" onchange="document.getElementById('customCategoryBox').style.display = this.value === 'অন্যান্য' ? 'block' : 'none';">
+        <% categories.forEach(function (c) { %>
+          <option value="<%= c %>"><%= c %></option>
+        <% }) %>
+      </select>
+
+      <div id="customCategoryBox" style="display:none; margin-top:10px;">
+        <label>খাতের নাম লিখুন</label>
+        <input type="text" name="customCategory" placeholder="যেমন: ইন্টারনেট বিল" />
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <div>
+          <label>টাকার পরিমাণ</label>
+          <input type="number" name="amount" min="1" step="1" required />
+        </div>
+        <div>
+          <label>তারিখ</label>
+          <input type="date" name="date" value="<%= new Date().toISOString().slice(0,10) %>" />
+        </div>
+      </div>
+
+      <label style="margin-top:10px;">নোট (ঐচ্ছিক)</label>
+      <input type="text" name="note" placeholder="যেমন: সেপ্টেম্বর মাসের বিদ্যুৎ বিল" />
+
+      <button type="submit" class="btn btn-primary btn-block">খরচ যোগ করুন</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <form method="GET" action="/admin/expenses" class="row" style="align-items:flex-end;">
+      <div>
+        <label>মাস</label>
+        <input type="month" name="month" value="<%= month %>" onchange="this.form.submit()" />
+      </div>
+    </form>
+    <h2 style="margin-top:14px;">এই মাসের মোট ব্যয়: ৳ <%= monthTotal.toLocaleString('en-US') %></h2>
+    <% if (rows.length === 0) { %>
+      <p class="empty">এই মাসে কোনো খরচ যোগ করা হয়নি।</p>
+    <% } else { %>
+      <table>
+        <thead>
+          <tr><th>তারিখ</th><th>খাত</th><th>নোট</th><th>পরিমাণ</th><th></th></tr>
+        </thead>
+        <tbody>
+          <% rows.forEach(function (e) { %>
+            <tr>
+              <td><%= e.date %></td>
+              <td><%= e.category %></td>
+              <td><%= e.note || '-' %></td>
+              <td style="color:#b91c1c; font-weight:600;">৳ <%= e.amount.toLocaleString('en-US') %></td>
+              <td>
+                <form method="POST" action="/admin/expenses/<%= e.id %>/delete?month=<%= month %>" onsubmit="return appConfirm(this, 'এই খরচের এন্ট্রি মুছে ফেলতে চান?')">
+                  <button type="submit" class="btn btn-danger">মুছুন</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+
+    </div>
+  </div>
+</body>
+</html>

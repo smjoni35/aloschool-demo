@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title><%= student.name %> — প্রোফাইল</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+<style>
+  .profile-head { display: flex; gap: 14px; align-items: center; margin-bottom: 6px; }
+  .profile-head img { width: 76px; height: 76px; object-fit: cover; border-radius: 10px; background: #f1f5f9; }
+  .profile-head .ph-placeholder { width: 76px; height: 76px; border-radius: 10px; background: #f1f5f9; display:flex; align-items:center; justify-content:center; font-size:28px; color:#bbb; flex-shrink:0; }
+</style>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/students?class=<%= classSlug %>">← শিক্ষার্থী তালিকা</a>
+    <a href="/students/<%= classSlug %>/<%= student.id %>/fees">💳 ফি</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <div class="profile-head">
+      <% if (student.photoDataUrl) { %>
+        <img src="<%= student.photoDataUrl %>" alt="<%= student.name %>" />
+      <% } else { %>
+        <div class="ph-placeholder">🧑</div>
+      <% } %>
+      <div>
+        <h1 style="margin-bottom:4px;"><%= student.name %></h1>
+        <span class="pill"><%= className %></span>
+        <% if (student.roll) { %><span class="pill">রোল: <%= student.roll %></span><% } %>
+        <% if (student.section) { %><span class="pill"><%= student.section %></span><% } %>
+        <% if (student.fatherPhone) { %><a href="tel:<%= student.fatherPhone %>" class="pill" style="text-decoration:none;">📞 বাবা: <%= student.fatherPhone %></a><% } %>
+        <% if (student.motherPhone) { %><a href="tel:<%= student.motherPhone %>" class="pill" style="text-decoration:none;">📞 মা: <%= student.motherPhone %></a><% } %>
+      </div>
+    </div>
+    <% if (saved) { %>
+      <p style="background:#f0fdf4; color:#15803d; padding:10px; border-radius:8px; font-size:14px; margin:12px 0 0;">✅ তথ্য সংরক্ষণ করা হয়েছে।</p>
+    <% } %>
+  </div>
+
+  <div class="card">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+      <h2 style="margin:0;">যাবতীয় তথ্য</h2>
+      <button type="button" id="profileEditBtn" class="btn btn-secondary" style="white-space:nowrap;" onclick="document.getElementById('profileFieldset').disabled=false; this.style.display='none'; document.getElementById('profileSaveBtn').style.display='block';">✏️ এডিট করুন</button>
+    </div>
+    <form method="POST" action="/students/<%= classSlug %>/<%= student.id %>">
+      <fieldset id="profileFieldset" disabled style="border:none; padding:0; margin:0;">
+      <div class="row">
+        <div>
+          <label>নাম</label>
+          <input type="text" name="name" value="<%= student.name %>" required />
+        </div>
+        <div style="flex:0 0 90px;">
+          <label>রোল</label>
+          <input type="text" name="roll" value="<%= student.roll || '' %>" />
+        </div>
+      </div>
+
+      <label>ভর্তির সেশন <span style="font-weight:400; color:#999;">(যে সেশন থেকে এই শিক্ষার্থী এই ক্লাসে পড়া শুরু করেছে — ভবিষ্যতে বার্ষিক ক্লাস প্রমোশনে ব্যবহৃত হয়, খালি রাখলে পুরনো নিয়মে সবসময়ের মতো প্রমোশন হবে)</span></label>
+      <input type="text" name="session" value="<%= student.session || '' %>" placeholder="যেমন 2027" style="max-width:140px;" />
+
+      <label>রেজিস্ট্রেশন নম্বর <span style="font-weight:400; color:#999;">(ইচ্ছেমতো লিখুন বা পরিবর্তন করুন)</span></label>
+      <input type="text" name="registration" value="<%= student.registration || '' %>" placeholder="যেমন 2026০১১২" />
+
+      <label style="display:flex; align-items:center; gap:8px; margin-top:14px;">
+        <input type="checkbox" name="transportEnabled" value="1" <%= student.transportEnabled ? 'checked' : '' %> style="width:auto;" />
+        <span style="margin:0;">🚌 গাড়ি সুবিধা নিচ্ছে <span style="font-weight:400; color:#999;">(চালু থাকলে মাসিক বেতনের সাথে গাড়ি ভাড়াও যোগ হবে)</span></span>
+      </label>
+      <label style="margin-top:8px;">গাড়ি ভাড়া (মাসিক) <span style="font-weight:400; color:#999;">(ঐচ্ছিক — দূরত্ব অনুযায়ী এই শিক্ষার্থীর জন্য আলাদা ভাড়া হলে এখানে লিখুন। খালি রাখলে ক্লাসের ফি স্ট্রাকচারে নির্ধারিত সাধারণ ভাড়া প্রযোজ্য হবে)</span></label>
+      <input type="number" name="transportFee" min="0" placeholder="৳ (খালি = ক্লাসের সাধারণ ভাড়া)" value="<%= student.transportFee || '' %>" style="max-width:200px;" />
+
+      <label style="display:flex; align-items:center; gap:8px; margin-top:14px;">
+        <input type="checkbox" name="coachingEnabled" value="1" <%= student.coachingEnabled ? 'checked' : '' %> style="width:auto;" />
+        <span style="margin:0;">📘 কোচিং করছে <span style="font-weight:400; color:#999;">(চালু থাকলে মাসিক বেতনের সাথে কোচিং বেতনও যোগ হবে)</span></span>
+      </label>
+      <label style="margin-top:8px;">কোচিং বেতন (মাসিক) <span style="font-weight:400; color:#999;">(ঐচ্ছিক — এই শিক্ষার্থীর জন্য আলাদা কোচিং বেতন হলে এখানে লিখুন। খালি রাখলে ক্লাসের ফি স্ট্রাকচারে নির্ধারিত সাধারণ কোচিং বেতন প্রযোজ্য হবে)</span></label>
+      <input type="number" name="coachingFee" min="0" placeholder="৳ (খালি = ক্লাসের সাধারণ কোচিং বেতন)" value="<%= student.coachingFee || '' %>" style="max-width:200px;" />
+
+      <label style="margin-top:14px;">🏷️ স্থায়ী ছাড় <span style="font-weight:400; color:#999;">(ভাই-বোন/স্টাফ-সন্তান/বৃত্তি — চালু থাকলে প্রতি মাসে মাসিক বেতন থেকে অটো কমবে)</span></label>
+      <div class="row">
+        <div>
+          <select name="discountType">
+            <option value="" <%= !student.discountType ? 'selected' : '' %>>— কোনো ছাড় নেই —</option>
+            <option value="percent" <%= student.discountType === 'percent' ? 'selected' : '' %>>শতাংশ (%)</option>
+            <option value="amount" <%= student.discountType === 'amount' ? 'selected' : '' %>>নির্দিষ্ট টাকা</option>
+          </select>
+        </div>
+        <div style="flex:0 0 110px;">
+          <input type="number" name="discountValue" min="0" placeholder="মান" value="<%= student.discountValue || '' %>" />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <input type="text" name="discountNote" placeholder="কারণ (যেমন: ভাই-বোন ছাড়)" value="<%= student.discountNote || '' %>" />
+        </div>
+        <div>
+          <input type="text" name="discountUntilSession" placeholder="শেষ সেশন (ঐচ্ছিক, যেমন 2026)" value="<%= student.discountUntilSession || '' %>" />
+        </div>
+      </div>
+      <p class="sub" style="margin:2px 0 0;">শেষ সেশন খালি রাখলে যতদিন এই শিক্ষার্থী পড়বে ততদিন প্রযোজ্য থাকবে (যেমন ভাই-বোন/স্টাফ ছাড়ের জন্য)। নির্দিষ্ট সেশন দিলে সেই সেশনের পর অটো বন্ধ হয়ে যাবে (যেমন এক সেশনের বৃত্তি)।</p>
+
+      <label>শিফট</label>
+      <select name="section">
+        <option value="" <%= !student.section ? 'selected' : '' %>>— সিলেক্ট করুন —</option>
+        <option value="মর্নিং" <%= student.section === 'মর্নিং' ? 'selected' : '' %>>মর্নিং</option>
+        <option value="ডে" <%= student.section === 'ডে' ? 'selected' : '' %>>ডে</option>
+      </select>
+
+      <div class="row">
+        <div>
+          <label>জন্ম তারিখ</label>
+          <input type="date" name="dob" value="<%= student.dob || '' %>" />
+        </div>
+        <div>
+          <label>লিঙ্গ</label>
+          <select name="gender">
+            <option value="" <%= !student.gender ? 'selected' : '' %>>— সিলেক্ট করুন —</option>
+            <option value="ছেলে" <%= student.gender === 'ছেলে' ? 'selected' : '' %>>ছেলে</option>
+            <option value="মেয়ে" <%= student.gender === 'মেয়ে' ? 'selected' : '' %>>মেয়ে</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>পিতার নাম</label>
+          <input type="text" name="fatherName" value="<%= student.fatherName || '' %>" />
+        </div>
+        <div>
+          <label>মাতার নাম</label>
+          <input type="text" name="motherName" value="<%= student.motherName || '' %>" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>পিতার মোবাইল নম্বর</label>
+          <input type="tel" name="fatherPhone" value="<%= student.fatherPhone || '' %>" />
+        </div>
+        <div>
+          <label>মাতার মোবাইল নম্বর</label>
+          <input type="tel" name="motherPhone" value="<%= student.motherPhone || '' %>" />
+        </div>
+      </div>
+
+      <label>রক্তের গ্রুপ</label>
+      <select name="bloodGroup">
+        <option value="" <%= !student.bloodGroup ? 'selected' : '' %>>— জানা না থাকলে খালি রাখুন —</option>
+        <% ["A+","A-","B+","B-","AB+","AB-","O+","O-"].forEach(bg => { %>
+          <option <%= student.bloodGroup === bg ? 'selected' : '' %>><%= bg %></option>
+        <% }) %>
+      </select>
+
+      <label>বর্তমান ঠিকানা</label>
+      <textarea name="presentAddress" rows="2"><%= student.presentAddress || '' %></textarea>
+
+      <label>পূর্ববর্তী বিদ্যালয়</label>
+      <input type="text" name="previousSchool" value="<%= student.previousSchool || '' %>" />
+
+      <label>পূর্ববর্তী বিদ্যালয় থেকে ছেড়ে আসার কারণ</label>
+      <input type="text" name="reasonForLeaving" value="<%= student.reasonForLeaving || '' %>" />
+
+      <label>ছবি (নতুন ছবি দিলে আগেরটা পরিবর্তন হবে)</label>
+      <input type="file" id="profilePhotoFile" accept="image/*" />
+      <input type="hidden" name="photoDataUrl" id="profilePhotoDataUrl" />
+      </fieldset>
+
+      <button type="submit" id="profileSaveBtn" class="btn btn-primary btn-block" style="display:none; margin-top:14px;">সংরক্ষণ করুন</button>
+    </form>
+    <script>
+      const profilePhotoFile = document.getElementById('profilePhotoFile');
+      const profilePhotoHidden = document.getElementById('profilePhotoDataUrl');
+      profilePhotoFile.addEventListener('change', async function () {
+        const file = profilePhotoFile.files[0];
+        if (!file) return;
+        // Try uploading to R2 first (small resized URL saved instead of a
+        // huge base64 string). If R2 isn't configured server-side, or the
+        // upload fails (e.g. offline), fall back to embedding the photo
+        // directly like before.
+        try {
+          const fd = new FormData();
+          fd.append('photo', file);
+          const resp = await fetch('/api/upload-photo', { method: 'POST', body: fd });
+          const data = await resp.json();
+          if (data.url) { profilePhotoHidden.value = data.url; return; }
+        } catch (e) { /* fall through to base64 fallback below */ }
+        const reader = new FileReader();
+        reader.onload = function () { profilePhotoHidden.value = reader.result; };
+        reader.readAsDataURL(file);
+      });
+    </script>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0;">সার্টিফিকেট / ডকুমেন্ট</h2>
+    <p style="font-size:13px; color:#666; margin-top:-6px;">শিক্ষার্থী বিদ্যালয় ত্যাগ করলে এখান থেকে ছাড়পত্র (TC) বা চরিত্র সনদ তৈরি করুন। প্রতিবার ডাউনলোডে নতুন সিরিয়াল নম্বর বসবে — কিছু এখানে সংরক্ষিত হয় না।</p>
+    <form id="docForm" target="_blank">
+      <div class="row">
+        <div>
+          <label>বিদ্যালয় ত্যাগের তারিখ</label>
+          <input type="date" name="leavingDate" />
+        </div>
+        <div>
+          <label>সর্বশেষ পরীক্ষার ফলাফল (শুধু TC-তে দেখাবে)</label>
+          <input type="text" name="lastExamResult" placeholder="যেমন: বার্ষিক পরীক্ষায় উত্তীর্ণ" />
+        </div>
+      </div>
+      <label>আচরণ/চরিত্র মন্তব্য</label>
+      <input type="text" name="conductRemark" placeholder="ডিফল্ট: সন্তোষজনক" />
+      <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+        <button type="submit" formaction="/students/<%= classSlug %>/<%= student.id %>/tc/pdf" class="btn btn-primary">📄 TC ডাউনলোড</button>
+        <button type="submit" formaction="/students/<%= classSlug %>/<%= student.id %>/character-certificate/pdf" class="btn btn-secondary">📄 চরিত্র সনদ ডাউনলোড</button>
+      </div>
+    </form>
+    <script>
+      // Plain GET-with-querystring submit — the two routes read leavingDate /
+      // lastExamResult / conductRemark straight off req.query, so no fetch or
+      // JSON needed here; the browser's native form submission does it all.
+      document.getElementById('docForm').addEventListener('submit', function (e) {
+        const form = e.target;
+        const btn = e.submitter;
+        if (btn && btn.formAction) form.action = btn.formAction;
+        form.method = 'GET';
+      });
+    </script>
+  </div>
+
+    </div>
+  </div>
+</body>
+</html>

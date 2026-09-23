@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>শিক্ষক লগইন — <%= settings.schoolName || 'স্কুল ম্যানেজমেন্ট সিস্টেম' %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+<%- include('_motion') %>
+</head>
+<body class="page-auth">
+  <div class="card" style="max-width: 380px; margin-top: 60px;">
+    <div class="brand-header" style="margin-bottom:16px;">
+      <% if (settings.logoDataUrl) { %>
+        <img class="brand-logo" src="<%= settings.logoDataUrl %>" alt="লোগো" />
+      <% } %>
+      <div>
+        <h1 style="margin:0; font-size:17px;"><%= settings.schoolName || 'স্কুল ম্যানেজমেন্ট সিস্টেম' %></h1>
+        <p class="sub" style="margin:2px 0 0;">🏫 শিক্ষক লগইন</p>
+      </div>
+    </div>
+    <p class="sub">পরীক্ষা তৈরি ও নম্বর এন্ট্রি করতে আপনার নাম বেছে নিয়ে পাসওয়ার্ড দিন</p>
+    <% if (typeof demoMode !== 'undefined' && demoMode) { %>
+      <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:10px 12px; margin-bottom:14px; font-size:13px; color:#1e3a8a;">
+        🧪 এটি একটি <strong>ডেমো সাইট</strong> — যেকোনো শিক্ষকের নাম বেছে নিয়ে পাসওয়ার্ড দিন:<br />
+        পাসওয়ার্ড: <strong><%= demoTeacherPassword %></strong>
+      </div>
+    <% } %>
+    <% if (error) { %>
+      <p style="color:#b91c1c; font-size:14px; margin:0 0 12px;"><%= error %></p>
+    <% } %>
+    <% if (accounts.length === 0) { %>
+      <p class="empty">এখনো কোনো শিক্ষকের লগইন অ্যাকাউন্ট তৈরি করা হয়নি। এডমিনের সাথে যোগাযোগ করুন।</p>
+    <% } else { %>
+      <form method="POST" action="/teacher/login">
+        <label>আপনার নাম</label>
+        <select name="accountId" required autofocus>
+          <option value="">-- বেছে নিন --</option>
+          <% accounts.forEach(a => { %>
+            <option value="<%= a.id %>"><%= a.name %></option>
+          <% }) %>
+        </select>
+        <label>পাসওয়ার্ড</label>
+        <input type="password" name="password" required />
+        <button type="submit" class="btn btn-primary btn-block">প্রবেশ করুন</button>
+      </form>
+    <% } %>
+    <p style="font-size:12px; color:#999; margin:14px 0 0; text-align:center;">
+      অ্যাকাউন্ট না থাকলে এডমিনের কাছ থেকে পাসওয়ার্ড নিন।
+    </p>
+  </div>
+</body>
+</html>

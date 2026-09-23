@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title><%= className %> — ফি নির্ধারণ</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/admin/fees">← ফি ম্যানেজমেন্ট</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1><%= className %> <span class="pill">সেশন: <%= session %></span></h1>
+    <p class="sub" style="margin:2px 0 0;">এই ক্লাসের ফি স্ট্রাকচার — সেশন পাল্টাতে চাইলে নিচে অন্য সেশন লিখে "লোড করুন" চাপুন।</p>
+    <form method="GET" action="/admin/fees/structure/<%= classSlug %>" class="row" style="margin-top:12px; align-items:flex-end;">
+      <div>
+        <label>সেশন</label>
+        <input type="text" name="session" value="<%= session %>" />
+      </div>
+      <div style="flex:0 0 auto;">
+        <button type="submit" class="btn btn-secondary">লোড করুন</button>
+      </div>
+    </form>
+    <% if (saved) { %>
+      <p style="background:#f0fdf4; color:#15803d; padding:10px; border-radius:8px; font-size:14px; margin:12px 0 0;">✅ সংরক্ষণ করা হয়েছে।</p>
+    <% } %>
+  </div>
+
+  <details class="card acc">
+    <summary>ভর্তির সময় এককালীন খরচ</summary>
+    <p class="sub" style="margin:0 0 10px;">ভর্তি ফি, আইডি কার্ড ফি, রশিদ বই, ডায়েরী — যা যা খাত আছে একটা একটা করে যোগ করুন। ভর্তি অনুমোদনের সময় এই সবগুলো একসাথে ছাত্রের নামে বসে যাবে।</p>
+    <% if (structure.admissionItems.length === 0) { %>
+      <p class="empty">এখনো কোনো খাত যোগ করা হয়নি।</p>
+    <% } else { %>
+      <% structure.admissionItems.forEach(item => { %>
+        <div class="list-item">
+          <div><%= item.name %></div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <strong>৳ <%= item.amount %></strong>
+            <form method="POST" action="/admin/fees/structure/<%= classSlug %>/items/<%= item.id %>/delete" onsubmit="return appConfirm(this, 'মুছে ফেলবেন?')">
+              <input type="hidden" name="session" value="<%= session %>" />
+              <button type="submit" class="btn btn-danger">মুছুন</button>
+            </form>
+          </div>
+        </div>
+      <% }) %>
+    <% } %>
+    <form method="POST" action="/admin/fees/structure/<%= classSlug %>/items/add" class="row" style="margin-top:12px;">
+      <input type="hidden" name="session" value="<%= session %>" />
+      <div style="flex:2;">
+        <input type="text" name="name" placeholder="যেমন: ভর্তি ফি" required />
+      </div>
+      <div style="flex:1;">
+        <input type="number" name="amount" placeholder="টাকা" min="1" required />
+      </div>
+      <div style="flex:0 0 auto;">
+        <button type="submit" class="btn btn-secondary">যোগ করুন</button>
+      </div>
+    </form>
+  </details>
+
+  <form method="POST" action="/admin/fees/structure/<%= classSlug %>">
+    <input type="hidden" name="session" value="<%= session %>" />
+    <details class="card acc">
+      <summary>সেশন ফি ও নিয়মিত ফি</summary>
+      <label>সেশন ফি (প্রতি সেশনে একবার)</label>
+      <input type="number" name="sessionFee" value="<%= structure.sessionFee || '' %>" min="0" placeholder="৳" />
+
+      <label>মাসিক বেতন</label>
+      <input type="number" name="monthlyTuition" value="<%= structure.monthlyTuition || '' %>" min="0" placeholder="৳" />
+
+      <label>গাড়ি ভাড়া (মাসিক) <span style="font-weight:400; color:#999;">(শুধু যাদের প্রোফাইলে "গাড়ি সুবিধা" চালু আছে তাদের জন্য প্রযোজ্য)</span></label>
+      <input type="number" name="transportMonthly" value="<%= structure.transportMonthly || '' %>" min="0" placeholder="৳" />
+
+      <label>কোচিং বেতন (মাসিক) <span style="font-weight:400; color:#999;">(শুধু যাদের প্রোফাইলে "কোচিং" চালু আছে তাদের জন্য প্রযোজ্য — স্কুলের অতিরিক্ত ক্লাসের জন্য)</span></label>
+      <input type="number" name="coachingMonthly" value="<%= structure.coachingMonthly || '' %>" min="0" placeholder="৳" />
+    </details>
+
+    <details class="card acc">
+      <summary>পরীক্ষার ফি</summary>
+      <p class="sub" style="margin:0 0 10px;">পরীক্ষার নামের সাথে মিলিয়ে অটো বসবে — "অর্ধ" শব্দ থাকলে অর্ধ বার্ষিক, তা না হয়ে "বার্ষিক" থাকলে বার্ষিক, "ত্রি"/"ত্রৈ" থাকলে ত্রি মাসিক ধরা হবে।</p>
+      <label>ত্রি মাসিক পরীক্ষার ফি</label>
+      <input type="number" name="examFeeQuarterly" value="<%= structure.examFees.quarterly || '' %>" min="0" placeholder="৳" />
+
+      <label>অর্ধ বার্ষিক পরীক্ষার ফি</label>
+      <input type="number" name="examFeeHalfYearly" value="<%= structure.examFees.halfYearly || '' %>" min="0" placeholder="৳" />
+
+      <label>বার্ষিক পরীক্ষার ফি</label>
+      <input type="number" name="examFeeAnnual" value="<%= structure.examFees.annual || '' %>" min="0" placeholder="৳" />
+
+      <button type="submit" class="btn btn-primary btn-block">সংরক্ষণ করুন</button>
+    </details>
+  </form>
+
+    </div>
+  </div>
+</body>
+</html>

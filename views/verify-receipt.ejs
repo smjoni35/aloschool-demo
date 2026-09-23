@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>রশিদ যাচাই<% if (result) { %> — <%= result.receiptNo %><% } %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+<style>
+  body { padding: 0; }
+  .verify-page { max-width: 480px; margin: 0 auto; padding: 24px 16px; }
+
+  .result-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(30, 64, 175, 0.12);
+  }
+  .result-banner {
+    color: #fff;
+    text-align: center;
+    padding: 26px 20px 22px;
+    position: relative;
+  }
+  .result-banner.ok { background: linear-gradient(135deg, #15803d 0%, #22c55e 60%, #4ade80 100%); }
+  .result-banner.bad { background: linear-gradient(135deg, #991b1b 0%, #dc2626 60%, #ef4444 100%); }
+  .result-banner::after {
+    content: "";
+    position: absolute; left: 0; right: 0; bottom: -1px;
+    height: 14px;
+    background: #fff;
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  }
+  .result-banner .logo {
+    display: block; margin: 0 auto 10px;
+    width: 56px; height: 56px; object-fit: contain;
+    background: #fff; border-radius: 8px; padding: 4px;
+  }
+  .result-banner .school { font-size: 19px; font-weight: 700; }
+  .result-banner .status-icon {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; font-weight: 700;
+    margin: 0 auto 10px;
+  }
+  .result-banner .status-text { font-size: 15px; font-weight: 700; }
+  .result-banner .status-sub { font-size: 12.5px; color: rgba(255,255,255,0.9); margin-top: 4px; }
+
+  .result-body { padding: 20px; }
+  .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 14px; font-size: 14px; }
+  .info-item { background: #f6f9ff; border: 1px solid #eaf0ff; border-radius: 10px; padding: 9px 12px; }
+  .info-item.full { grid-column: 1 / -1; }
+  .info-item .k { display: block; font-size: 11px; color: #7286a8; text-transform: uppercase; letter-spacing: 0.3px; }
+  .info-item .v { font-size: 15px; font-weight: 700; color: #14213d; margin-top: 1px; }
+
+  .not-found-box { text-align: center; padding: 6px 8px 4px; color: #555; font-size: 14px; line-height: 1.6; }
+</style>
+</head>
+<body>
+  <div class="verify-page">
+    <div class="result-card">
+      <% if (result) { %>
+        <div class="result-banner ok">
+          <% if (settings && settings.logoDataUrl) { %><img class="logo" src="<%= settings.logoDataUrl %>" alt="লোগো" /><% } %>
+          <div class="school"><%= settings.schoolName || 'স্কুল' %></div>
+          <div class="status-icon">✓</div>
+          <div class="status-text">রশিদ যাচাইকৃত ও সঠিক</div>
+          <div class="status-sub">এই রশিদটি বিদ্যালয়ের রেকর্ডে বিদ্যমান আছে</div>
+        </div>
+        <div class="result-body">
+          <div class="info-grid">
+            <div class="info-item full"><span class="k">রশিদ নম্বর</span><span class="v"><%= result.receiptNo %></span></div>
+            <div class="info-item"><span class="k">শিক্ষার্থীর নাম</span><span class="v"><%= result.studentName %></span></div>
+            <div class="info-item"><span class="k">রোল/রেজি.</span><span class="v"><%= result.rollOrReg %></span></div>
+            <div class="info-item"><span class="k">শ্রেণি</span><span class="v"><%= result.className %></span></div>
+            <div class="info-item"><span class="k">তারিখ</span><span class="v"><%= new Date(result.date).toLocaleDateString("bn-BD") %></span></div>
+            <div class="info-item full"><span class="k">জমাকৃত টাকা</span><span class="v">৳ <%= Number(result.amount || 0).toLocaleString("en-US") %></span></div>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="result-banner bad">
+          <% if (settings && settings.logoDataUrl) { %><img class="logo" src="<%= settings.logoDataUrl %>" alt="লোগো" /><% } %>
+          <div class="school"><%= settings.schoolName || 'স্কুল' %></div>
+          <div class="status-icon">✕</div>
+          <div class="status-text">রশিদ যাচাই করা যায়নি</div>
+          <div class="status-sub">এই নম্বরের কোনো রশিদ রেকর্ডে পাওয়া যায়নি</div>
+        </div>
+        <div class="result-body">
+          <div class="not-found-box">
+            <p style="margin:0 0 6px;">রশিদ নম্বর: <strong><%= receiptNo || '-' %></strong></p>
+            <p style="margin:0;">এই রশিদটি সঠিক না হতে পারে, অথবা ভুল লিংক/QR স্ক্যান করা হয়েছে। নিশ্চিত হতে বিদ্যালয় অফিসে যোগাযোগ করুন।</p>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ক্লাস প্রমোশন — স্কুল ম্যানেজমেন্ট সিস্টেম</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/admin">⚙️ সেটিংস</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>🎓 বার্ষিক ক্লাস প্রমোশন</h1>
+    <p class="sub">
+      একটা সেশন দিন (যেমন ২০২৬) — প্রতিটা ক্লাসের সেই সেশনের <strong>বার্ষিক পরীক্ষা</strong>র মেধাক্রম অনুযায়ী সব
+      শিক্ষার্থীকে এক ধাপ ওপরের ক্লাসে সরানো হবে (নতুন রোল নম্বর মেধাক্রম অনুযায়ী বসবে)। সর্বোচ্চ ক্লাস থেকে শুরু হয়ে
+      নিচের দিকে ক্রমান্বয়ে চলবে, তাই কোথাও মিক্সড হবে না। প্রয়োজনে নতুন ক্লাসও অটোমেটিক তৈরি হয়ে যাবে।
+    </p>
+    <p style="color:#b91c1c; font-size:13px; margin:0 0 14px;">
+      ⚠️ এটা একবার নিশ্চিত করে চালালে ফিরিয়ে আনার কোনো "আনডু" বাটন নেই — তাই প্রিভিউ ভালোভাবে দেখে তারপর কনফার্ম করুন।
+    </p>
+
+    <% if (applied) { %>
+      <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:14px; margin-bottom:16px;">
+        <strong style="color:#15803d;">✅ প্রমোশন সম্পন্ন হয়েছে।</strong>
+        <ul style="margin:8px 0 0; padding-left:20px; font-size:14px;">
+          <% applied.steps.forEach(function(step) { %>
+            <li><%= step.fromClassName %> → <%= step.toClassName %><% if (step.isNewClass) { %> (নতুন ক্লাস তৈরি হয়েছে)<% } %> — <%= step.students.length %> জন শিক্ষার্থী</li>
+          <% }); %>
+        </ul>
+      </div>
+    <% } %>
+
+    <form method="POST" action="/admin/promotion/preview">
+      <label>সেশন</label>
+      <input type="text" name="session" value="<%= session %>" placeholder="২০২৬" required />
+      <button type="submit" class="btn btn-primary btn-block">প্রিভিউ দেখুন</button>
+    </form>
+  </div>
+
+  <% if (plan) { %>
+    <% if (plan.errors.length > 0) { %>
+      <details class="card acc" open data-force-open>
+        <summary>⚠️ বাদ পড়া ক্লাস</summary>
+        <ul style="margin:0; padding-left:20px; font-size:14px; color:#b91c1c;">
+          <% plan.errors.forEach(function(err) { %>
+            <li><%= err %></li>
+          <% }); %>
+        </ul>
+      </details>
+    <% } %>
+
+    <% if (plan.steps.length === 0) { %>
+      <div class="card">
+        <p class="sub" style="margin:0;">কোনো ক্লাস প্রমোট করার মতো পাওয়া যায়নি — সেশন নম্বর ঠিক আছে কিনা, আর প্রতিটা ক্লাসে "বার্ষিক পরীক্ষা" তৈরি ও নম্বর দেওয়া আছে কিনা দেখুন।</p>
+      </div>
+    <% } else { %>
+      <details class="card acc" open data-force-open>
+        <summary>👀 প্রিভিউ</summary>
+        <% plan.steps.forEach(function(step) { %>
+          <h2 style="font-size:16px; margin:18px 0 6px;">
+            <%= step.fromClassName %> → <%= step.toClassName %>
+            <% if (step.isNewClass) { %><span style="color:#2563eb; font-size:13px;"> (নতুন ক্লাস তৈরি হবে)</span><% } %>
+            <span style="color:#6b7280; font-size:13px;"> — <%= step.students.length %> জন</span>
+          </h2>
+          <table>
+            <thead>
+              <tr><th>নতুন রোল</th><th>নাম</th><th>আগের রোল</th><th>মেধাক্রম</th></tr>
+            </thead>
+            <tbody>
+              <% step.students.forEach(function(s) { %>
+                <tr>
+                  <td><%= s.newRoll %></td>
+                  <td><%= s.name %></td>
+                  <td><%= s.oldRoll || '—' %></td>
+                  <td><%= s.position || 'অসম্পূর্ণ/অনুপস্থিত' %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        <% }); %>
+
+        <form method="POST" action="/admin/promotion/confirm" onsubmit="return appConfirm(this, 'নিশ্চিত? এই প্রমোশন আর ফিরিয়ে আনা যাবে না।')" style="margin-top:18px;">
+          <input type="hidden" name="session" value="<%= session %>" />
+          <button type="submit" class="btn btn-danger btn-block">✅ নিশ্চিত করে প্রমোশন চালান</button>
+        </form>
+      </details>
+    <% } %>
+  <% } %>
+
+  <%- include('_script') %>
+
+    </div>
+  </div>
+</body>
+</html>

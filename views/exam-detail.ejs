@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title><%= exam.examName %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+    <a href="/exams">পরীক্ষা তালিকা</a>
+  </div>
+
+  <div class="card">
+    <h1><%= exam.examName %> <span class="pill"><%= exam.className %></span></h1>
+    <p class="sub"><%= exam.schoolName %> <% if (exam.session) { %>— সেশন: <%= exam.session %><% } %> — <%= studentCount %> জন শিক্ষার্থী</p>
+    <div style="display:flex; gap:8px;">
+      <a href="/exams/<%= exam.key %>/results" class="btn btn-primary" style="flex:1;">📄 ফলাফল দেখুন / PDF তৈরি করুন</a>
+      <a href="/exams/<%= exam.key %>/edit" class="btn btn-secondary">✏️ এডিট</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>নতুন বিষয় যোগ করুন</h2>
+    <form method="POST" action="/exams/<%= exam.key %>/subjects/add" class="row">
+      <div style="flex:2;">
+        <input type="text" name="subjectName" placeholder="যেমন: বাংলা" required />
+      </div>
+      <div style="flex:1;">
+        <input type="number" name="fullMarks" placeholder="পূর্ণমান" value="100" min="1" max="100" required />
+      </div>
+      <div style="flex:0 0 auto;">
+        <button type="submit" class="btn btn-secondary">যোগ করুন</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>বিষয়সমূহ — মার্ক এন্ট্রি</h2>
+    <% if (exam.subjects.length === 0) { %>
+      <p class="empty">এখনো কোনো বিষয় যোগ করা হয়নি।</p>
+    <% } else { %>
+      <% exam.subjects.forEach((s, i) => { %>
+        <div class="list-item subject-item" id="view-subject-<%= i %>">
+          <div>
+            <%= s.name %>
+            <span style="color:#999; font-size:12px;">(পূর্ণমান <%= s.fullMarks %>)</span>
+            <% if (s.teacherName) { %>
+              <span class="pill" style="margin-left:6px;">এন্ট্রি: <%= s.teacherName %></span>
+            <% } %>
+          </div>
+          <div class="subject-actions">
+            <a href="/exams/<%= exam.key %>/marks/<%= i %>" class="btn btn-secondary">নম্বর দিন</a>
+            <button type="button" class="btn btn-secondary" onclick="toggleSubjectEdit(<%= i %>)">এডিট</button>
+            <form method="POST" action="/exams/<%= exam.key %>/subjects/<%= i %>/delete" onsubmit="return appConfirm(this, 'এই বিষয়টি মুছে ফেলবেন? এই বিষয়ের সব নম্বরও মুছে যাবে।')">
+              <button type="submit" class="btn btn-danger">মুছুন</button>
+            </form>
+          </div>
+        </div>
+        <div id="edit-subject-<%= i %>" style="display:none; padding:10px 0; border-bottom:1px solid #f0f0f0;">
+          <form method="POST" action="/exams/<%= exam.key %>/subjects/<%= i %>/edit">
+            <div class="row">
+              <div style="flex:2;">
+                <label>বিষয়ের নাম</label>
+                <input type="text" name="subjectName" value="<%= s.name %>" required />
+              </div>
+              <div style="flex:1;">
+                <label>পূর্ণমান</label>
+                <input type="number" name="fullMarks" value="<%= s.fullMarks %>" min="1" max="100" required />
+              </div>
+            </div>
+            <div class="row" style="margin-top:10px;">
+              <button type="submit" class="btn btn-primary" style="flex:1;">সেভ করুন</button>
+              <button type="button" class="btn btn-secondary" style="flex:1;" onclick="toggleSubjectEdit(<%= i %>)">বাতিল</button>
+            </div>
+          </form>
+        </div>
+      <% }) %>
+      <script>
+        function toggleSubjectEdit(i) {
+          const view = document.getElementById('view-subject-' + i);
+          const edit = document.getElementById('edit-subject-' + i);
+          const editing = edit.style.display !== 'none';
+          edit.style.display = editing ? 'none' : 'block';
+          view.style.display = editing ? 'flex' : 'none';
+        }
+      </script>
+    <% } %>
+  </div>
+  <%- include('_script') %>
+
+    </div>
+  </div>
+</body>
+</html>

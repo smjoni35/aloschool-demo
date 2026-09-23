@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>শিক্ষার্থী উপস্থিতি — <%= settings.schoolName || 'স্কুল ম্যানেজমেন্ট সিস্টেম' %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="nav">
+    <a href="/teacher/panel">🏠 হোম</a>
+    <a href="/teacher/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>🧑 শিক্ষার্থী উপস্থিতি</h1>
+    <p class="sub">সেশন: <span class="pill"><%= session %></span></p>
+
+    <% if (assignments.length === 0) { %>
+      <p class="empty">আপনি এখনো কোনো ক্লাসের ক্লাস টিচার হিসেবে নির্ধারিত নন। এডমিনের সাথে যোগাযোগ করুন।</p>
+    <% } else { %>
+      <% assignments.forEach(a => { %>
+        <div class="list-item" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <div><span class="pill"><%= SHIFT_LABELS[a.shift] %></span> <strong><%= a.className %></strong></div>
+          <div style="display:flex; gap:8px;">
+            <a href="/teacher/attendance/mark?shift=<%= a.shift %>&date=<%= today %>" class="btn btn-primary" style="flex:1; text-align:center;">📋 উপস্থিতি নিন</a>
+            <a href="/teacher/attendance/report?shift=<%= a.shift %>" class="btn btn-secondary" style="flex:1; text-align:center;">📊 রিপোর্ট</a>
+          </div>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+</body>
+</html>

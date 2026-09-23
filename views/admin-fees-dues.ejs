@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>বকেয়া রিপোর্ট</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/admin/fees">← ফি ম্যানেজমেন্ট</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>📉 বকেয়া রিপোর্ট</h1>
+    <form method="GET" action="/admin/fees/dues" class="row" style="margin-top:10px; align-items:flex-end;">
+      <div>
+        <label>ক্লাস</label>
+        <select name="class" onchange="this.form.submit()">
+          <% classes.forEach(c => { %>
+            <option value="<%= c.slug %>" <%= c.slug === classSlug ? 'selected' : '' %>><%= c.name %></option>
+          <% }) %>
+        </select>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>মোট বকেয়া: ৳ <%= totalDue %> (<%= rows.length %> জন)</h2>
+    <% if (rows.length === 0) { %>
+      <p class="empty">এই ক্লাসে কারো বকেয়া নেই।</p>
+    <% } else { %>
+      <table>
+        <thead>
+          <tr><th>রোল</th><th>নাম</th><th>বকেয়া</th><th></th></tr>
+        </thead>
+        <tbody>
+          <% rows.forEach(r => { %>
+            <tr>
+              <td><%= r.student.roll || '-' %></td>
+              <td><%= r.student.name %></td>
+              <td style="color:#b91c1c; font-weight:600;">৳ <%= r.balance.due %></td>
+              <td><a href="/students/<%= classSlug %>/<%= r.student.id %>/fees" class="btn btn-secondary">দেখুন</a></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>শিক্ষক উপস্থিতি রিপোর্ট — <%= settings.schoolName || 'স্কুল ম্যানেজমেন্ট সিস্টেম' %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>📈 শিক্ষক উপস্থিতি রিপোর্ট</h1>
+
+    <form method="GET" action="/admin/attendance/reports/teacher">
+      <label>সেশন</label>
+      <select name="session" onchange="this.form.submit()">
+        <% sessions.forEach(s => { %>
+          <option value="<%= s %>" <%= s === session ? 'selected' : '' %>><%= s %></option>
+        <% }) %>
+      </select>
+    </form>
+
+    <div class="row" style="margin-top:14px;">
+      <a class="btn <%= mode === 'daily' ? 'btn-primary' : 'btn-secondary' %>" style="flex:1; text-align:center;"
+         href="/admin/attendance/reports/teacher?session=<%= session %>&mode=daily&date=<%= date %>">দৈনিক</a>
+      <a class="btn <%= mode === 'monthly' ? 'btn-primary' : 'btn-secondary' %>" style="flex:1; text-align:center;"
+         href="/admin/attendance/reports/teacher?session=<%= session %>&mode=monthly&month=<%= month %>">মাসিক</a>
+    </div>
+
+    <% if (mode === 'daily') { %>
+      <form method="GET" action="/admin/attendance/reports/teacher" style="margin-top:12px;">
+        <input type="hidden" name="session" value="<%= session %>" />
+        <input type="hidden" name="mode" value="daily" />
+        <label>তারিখ</label>
+        <input type="date" name="date" value="<%= date %>" onchange="this.form.submit()" />
+      </form>
+
+      <% if (teacherAccounts.length === 0) { %>
+        <p class="empty" style="margin-top:14px;">কোনো শিক্ষক লগইন অ্যাকাউন্ট নেই।</p>
+      <% } else { %>
+        <table>
+          <thead><tr><th>নাম</th><th>অবস্থা</th><th>চেক-ইন সময়</th></tr></thead>
+          <tbody>
+            <% teacherAccounts.forEach(t => { %>
+              <% const entry = dailyMap[t.id]; %>
+              <tr>
+                <td><%= t.name %></td>
+                <td><%= entry ? (entry.status === 'present' ? '✅ উপস্থিত' : entry.status === 'absent' ? '❌ অনুপস্থিত' : '🟡 ছুটি') : '—' %></td>
+                <td><%= entry && entry.checkInAt ? new Date(entry.checkInAt).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dhaka' }) : '-' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    <% } else { %>
+      <form method="GET" action="/admin/attendance/reports/teacher" style="margin-top:12px;">
+        <input type="hidden" name="session" value="<%= session %>" />
+        <input type="hidden" name="mode" value="monthly" />
+        <label>মাস</label>
+        <input type="month" name="month" value="<%= month %>" onchange="this.form.submit()" />
+      </form>
+
+      <% if (!monthly || monthly.dates.length === 0) { %>
+        <p class="empty" style="margin-top:14px;">এই মাসে কোনো উপস্থিতি রেকর্ড নেই।</p>
+      <% } else { %>
+        <p class="sub" style="margin-top:14px;">মোট রেকর্ড করা দিন: <%= monthly.dates.length %></p>
+        <table>
+          <thead><tr><th>নাম</th><th>উপস্থিত</th><th>অনুপস্থিত</th><th>ছুটি</th><th>%</th></tr></thead>
+          <tbody>
+            <% monthly.rows.forEach(r => { %>
+              <tr>
+                <td><%= r.teacher.name %></td>
+                <td><%= r.present %></td>
+                <td><%= r.absent %></td>
+                <td><%= r.leave %></td>
+                <td><%= r.percentage === null ? '—' : r.percentage + '%' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    <% } %>
+  </div>
+  <%- include('_script') %>
+
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title><%= exam.examName %> — টিচার প্যানেল</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="nav">
+    <a href="/teacher/panel">🏠 হোম</a>
+    <a href="/teacher/logout">🚪 লগআউট</a>
+    <a href="/teacher/exams">পরীক্ষা তালিকা</a>
+  </div>
+
+  <div class="card">
+    <h1><%= exam.examName %> <span class="pill"><%= exam.className %></span></h1>
+    <p class="sub"><%= exam.schoolName %> <% if (exam.session) { %>— সেশন: <%= exam.session %><% } %> — <%= studentCount %> জন শিক্ষার্থী</p>
+  </div>
+
+  <div class="card">
+    <h2>নতুন বিষয় যোগ করুন</h2>
+    <form method="POST" action="/teacher/exams/<%= exam.key %>/subjects/add" class="row">
+      <div style="flex:2;">
+        <input type="text" name="subjectName" placeholder="যেমন: বাংলা" required />
+      </div>
+      <div style="flex:1;">
+        <input type="number" name="fullMarks" placeholder="পূর্ণমান" value="100" min="1" max="100" required />
+      </div>
+      <div style="flex:0 0 auto;">
+        <button type="submit" class="btn btn-secondary">যোগ করুন</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>বিষয়সমূহ — মার্ক এন্ট্রি</h2>
+    <% if (exam.subjects.length === 0) { %>
+      <p class="empty">এখনো কোনো বিষয় যোগ করা হয়নি।</p>
+    <% } else { %>
+      <% exam.subjects.forEach((s, i) => { %>
+        <% const isOwner = s.teacherId === teacher.id; %>
+        <div class="list-item subject-item">
+          <div>
+            <%= s.name %>
+            <span style="color:#999; font-size:12px;">(পূর্ণমান <%= s.fullMarks %>)</span>
+            <br/>
+            <% if (!s.teacherId) { %>
+              <span class="pill" style="margin-top:4px; display:inline-block;">এখনো কেউ এন্ট্রি করেননি</span>
+            <% } else if (isOwner) { %>
+              <span class="pill" style="margin-top:4px; display:inline-block;">আপনার এন্ট্রি — এডিট করা যাবে</span>
+            <% } else { %>
+              <span class="pill" style="margin-top:4px; display:inline-block; background:#fef3c7; color:#92400e;">এন্ট্রি: <%= s.teacherName %> (শুধু দেখা যাবে)</span>
+            <% } %>
+          </div>
+          <div class="subject-actions">
+            <a href="/teacher/exams/<%= exam.key %>/marks/<%= i %>" class="btn btn-secondary"><%= s.teacherId && !isOwner ? "নম্বর দেখুন" : "নম্বর দিন" %></a>
+          </div>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+</body>
+</html>

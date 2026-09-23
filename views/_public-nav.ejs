@@ -1,0 +1,109 @@
+<%# Shared top navigation for every public page. Pass the string variable
+    `activePage` ('home' | 'about' | 'teachers' | 'gallery' | other) so the
+    matching link can be highlighted; anchors like #notices always point at
+    the home page ("/#notices") so they work correctly from any page. %>
+<style>
+  .site-nav {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: 4px;
+    background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    padding: 10px 12px; box-sizing: border-box; width: 100%;
+  }
+  .site-nav .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; color: #1a1a1a; margin-right: 6px; flex-shrink: 1; min-width: 0; }
+  .site-nav .brand img { width: 32px; height: 32px; object-fit: contain; border-radius: 7px; flex-shrink: 0; }
+  .site-nav .brand span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; line-height: 1.2; min-width: 0; }
+  .site-nav a { flex-shrink: 0; color: #444; font-size: 13px; padding: 8px 12px; border-radius: 999px; }
+  .site-nav a:hover { background: #f1f5f9; }
+  .site-nav a.active { background: #eaf1ff; color: #1d4ed8; font-weight: 600; }
+  .site-nav a.nav-login { color: #444; font-size: 13px; }
+  .site-nav a.nav-cta { background: #2563eb; color: #fff; font-weight: 600; margin-left: auto; flex-shrink: 0; }
+  .nav-toggle { display: none; flex-shrink: 0; background: #f1f5f9; color: #333; border: none; font-size: 13px; padding: 8px 12px; border-radius: 999px; font-family: inherit; cursor: pointer; margin-left: auto; }
+  .nav-links { display: flex; align-items: center; gap: 4px; }
+
+  /* "আমাদের স্কুল" group — a native <details> so it needs no extra JS state. */
+  .nav-group { position: relative; }
+  .nav-group > summary { display: inline-flex; align-items: center; gap: 4px; list-style: none; cursor: pointer; color: #444; font-size: 13px; padding: 8px 12px; border-radius: 999px; }
+  .nav-group > summary::-webkit-details-marker { display: none; }
+  .nav-group > summary:hover { background: #f1f5f9; }
+  .nav-group[open] > summary, .nav-group > summary.active { background: #eaf1ff; color: #1d4ed8; font-weight: 600; }
+  .nav-group .chev { font-size: 10px; transition: transform 0.15s; }
+  .nav-group[open] .chev { transform: rotate(180deg); }
+  .nav-submenu { display: flex; flex-direction: column; gap: 2px; }
+  .nav-submenu a { font-size: 13px; }
+
+  /* Mobile: collapse the middle links + staff login into a dropdown menu.
+     Brand and the primary "ফলাফল দেখুন" button always stay visible. */
+  @media (max-width: 640px) {
+    .nav-toggle { display: inline-flex; }
+    .nav-links {
+      display: none; position: absolute; top: 100%; left: 12px; right: 12px;
+      margin-top: 8px; background: #fff; flex-direction: column; align-items: stretch;
+      gap: 2px; padding: 8px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    .nav-links.open { display: flex; }
+    .nav-links a { text-align: left; }
+    .nav-submenu { padding-left: 14px; margin: 2px 0 4px; }
+  }
+  @media (min-width: 641px) {
+    .nav-submenu {
+      position: absolute; top: 100%; left: 0; margin-top: 6px; background: #fff;
+      border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 6px; min-width: 190px; z-index: 30;
+    }
+    .nav-submenu a { display: block; padding: 9px 12px; border-radius: 8px; }
+  }
+</style>
+<% if (typeof demoMode !== 'undefined' && demoMode) { %>
+  <div style="background:#1d4ed8; color:#fff; text-align:center; font-size:12.5px; padding:7px 10px; position:sticky; top:0; z-index:21;">
+    🧪 এটি একটি <strong>ডেমো ওয়েবসাইট</strong> — সব ফিচার নিজে টেস্ট করে দেখুন।
+    <a href="/login" style="color:#fff; text-decoration:underline;">এডমিন লগইন</a> (পাসওয়ার্ড: <strong><%= demoAdminPassword %></strong>) ·
+    <a href="/teacher/login" style="color:#fff; text-decoration:underline;">শিক্ষক লগইন</a> (পাসওয়ার্ড: <strong><%= demoTeacherPassword %></strong>)
+  </div>
+<% } %>
+<nav class="site-nav">
+  <a class="brand" href="/">
+    <% if (typeof settings !== 'undefined' && settings.logoDataUrl) { %><img src="<%= settings.logoDataUrl %>" alt="লোগো" /><% } %>
+    <span><%= (typeof settings !== 'undefined' && settings.schoolName) || 'স্কুল' %></span>
+  </a>
+  <button type="button" class="nav-toggle" id="navToggle" onclick="toggleNavMenu()">☰</button>
+  <div class="nav-links" id="navLinks">
+    <a href="/" class="<%= (typeof activePage !== 'undefined' && activePage === 'home') ? 'active' : '' %>">হোম</a>
+    <details class="nav-group" id="navSchoolGroup">
+      <summary class="<%= (typeof activePage !== 'undefined' && ['about','teachers','gallery'].includes(activePage)) ? 'active' : '' %>">আমাদের স্কুল <span class="chev">▾</span></summary>
+      <div class="nav-submenu">
+        <a href="/about" class="<%= (typeof activePage !== 'undefined' && activePage === 'about') ? 'active' : '' %>">পরিচিতি ও বাণী</a>
+        <a href="/teachers" class="<%= (typeof activePage !== 'undefined' && activePage === 'teachers') ? 'active' : '' %>">শিক্ষক / স্টাফ</a>
+        <a href="/gallery" class="<%= (typeof activePage !== 'undefined' && activePage === 'gallery') ? 'active' : '' %>">গ্যালারি</a>
+      </div>
+    </details>
+    <a href="/#notices">নোটিশ</a>
+    <a href="/routine">ক্লাস রুটিন</a>
+    <a href="/#admission">ভর্তি তথ্য</a>
+    <a href="/#contact">যোগাযোগ</a>
+    <a href="/result">ফলাফল দেখুন</a>
+    <a href="/login" class="nav-login">স্টাফ লগইন</a>
+  </div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+</nav>
+<script>
+  function toggleNavMenu() {
+    document.getElementById('navLinks').classList.toggle('open');
+  }
+  document.getElementById('navLinks').querySelectorAll(':scope > a').forEach(function (a) {
+    a.addEventListener('click', function () {
+      document.getElementById('navLinks').classList.remove('open');
+    });
+  });
+  (function () {
+    var group = document.getElementById('navSchoolGroup');
+    if (!group) return;
+    group.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', function () {
+        group.removeAttribute('open');
+        document.getElementById('navLinks').classList.remove('open');
+      });
+    });
+    document.addEventListener('click', function (e) {
+      if (group.hasAttribute('open') && !group.contains(e.target)) group.removeAttribute('open');
+    });
+  })();
+</script>

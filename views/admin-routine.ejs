@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ক্লাস রুটিন — <%= settings.schoolName || 'স্কুল ম্যানেজমেন্ট সিস্টেম' %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>🗓️ ক্লাস রুটিন</h1>
+    <p class="sub">
+      প্রতিটা ক্লাসকে একটা শিফটে (মর্নিং/ডে) বসিয়ে দিন, তারপর প্রতিটার নিজস্ব সাপ্তাহিক রুটিন সম্পাদনা করুন।
+      পাবলিক ওয়েবসাইটে শুধু যেসব ক্লাসের রুটিন পূরণ করা আছে সেগুলোই দেখা যাবে।
+    </p>
+    <a href="/routine" target="_blank" class="btn btn-secondary btn-block">🔗 পাবলিক রুটিন পেজ দেখুন</a>
+  </div>
+
+  <div class="card">
+    <h2>শিফটের পিরিয়ড সময়সূচি (ঐচ্ছিক)</h2>
+    <p class="sub">প্রতিটা পিরিয়ডের সময় লিখে রাখলে পাবলিক রুটিনে সময়ও দেখাবে — খালি রাখলে শুধু "প্রথম পিরিয়ড", "দ্বিতীয় পিরিয়ড" দেখাবে।</p>
+    <form method="POST" action="/admin/routine/shift-times">
+      <div class="row" style="align-items:flex-start; gap:20px;">
+        <div style="flex:1;">
+          <strong>🌅 মর্নিং শিফট</strong>
+          <% for (let i = 0; i < PERIOD_COUNT; i++) { %>
+            <label style="margin-top:8px;"><%= periodOrdinal(i + 1) %> পিরিয়ড</label>
+            <input type="text" name="morningTimes" value="<%= shiftPeriodTimes.morning[i] || '' %>" placeholder="যেমন: ৯:০০ - ৯:৪০" />
+          <% } %>
+        </div>
+        <div style="flex:1;">
+          <strong>🏫 ডে শিফট</strong>
+          <% for (let i = 0; i < PERIOD_COUNT; i++) { %>
+            <label style="margin-top:8px;"><%= periodOrdinal(i + 1) %> পিরিয়ড</label>
+            <input type="text" name="dayTimes" value="<%= shiftPeriodTimes.day[i] || '' %>" placeholder="যেমন: ২:০০ - ২:৪০" />
+          <% } %>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">সময়সূচি সেভ করুন</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>ক্লাসভিত্তিক শিফট ও রুটিন</h2>
+    <% if (classes.length === 0) { %>
+      <p class="empty">এখনো কোনো ক্লাস যোগ করা হয়নি — আগে <a href="/students">শিক্ষার্থী পেজ</a> থেকে ক্লাস তৈরি করুন।</p>
+    <% } else { %>
+      <% classes.forEach(cls => { %>
+        <div class="list-item" style="flex-direction:column; align-items:stretch; gap:10px;">
+          <strong><%= cls.name %></strong>
+          <form method="POST" action="/admin/routine/class-shift" class="row" style="align-items:flex-end; gap:8px;">
+            <input type="hidden" name="classSlug" value="<%= cls.slug %>" />
+            <div style="flex:1;">
+              <label>শিফট</label>
+              <select name="shift">
+                <option value="morning" <%= classShifts[cls.slug] === 'morning' ? 'selected' : '' %>>🌅 মর্নিং শিফট</option>
+                <option value="day" <%= classShifts[cls.slug] === 'day' ? 'selected' : '' %>>🏫 ডে শিফট</option>
+              </select>
+            </div>
+            <div style="flex:0 0 auto;">
+              <button type="submit" class="btn btn-secondary">সেভ করুন</button>
+            </div>
+          </form>
+          <a href="/admin/routine/<%= cls.slug %>" class="btn btn-primary btn-block" style="margin-top:0;">📅 রুটিন সম্পাদনা করুন</a>
+          <a href="/admin/routine/<%= cls.slug %>/pdf" target="_blank" class="btn btn-secondary btn-block" style="margin-top:0;">📄 পিডিএফ ডাউনলোড</a>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+
+    </div>
+  </div>
+</body>
+</html>

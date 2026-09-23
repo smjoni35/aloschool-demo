@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>পরীক্ষা তালিকা</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+    <a href="/students">শিক্ষার্থী</a>
+  </div>
+
+  <div class="card">
+    <h2>নতুন পরীক্ষা তৈরি করুন</h2>
+    <% if (classes.length === 0) { %>
+      <p class="empty">আগে <a href="/students">শিক্ষার্থী পেজ</a> থেকে একটা ক্লাস ও শিক্ষার্থী যোগ করুন।</p>
+    <% } else { %>
+      <form method="POST" action="/exams/create">
+        <label>ক্লাস <span style="font-weight:400; color:#999;">(একই পরীক্ষা একসাথে একাধিক ক্লাসের জন্য তৈরি করতে একাধিক ক্লাস সিলেক্ট করুন)</span></label>
+        <div style="display:flex; justify-content:flex-end; margin-bottom:6px;">
+          <a href="#" id="selectAllClasses" style="font-size:12px;">সব সিলেক্ট করুন</a>
+        </div>
+        <div class="class-checklist">
+          <% classes.forEach(c => { %>
+            <label class="check-row">
+              <input type="checkbox" name="classSlug" value="<%= c.slug %>" />
+              <span><%= c.name %></span>
+            </label>
+          <% }) %>
+        </div>
+
+        <% if (settings.schoolName) { %>
+          <label>স্কুলের নাম</label>
+          <input type="text" value="<%= settings.schoolName %>" disabled />
+          <p style="font-size:12px; color:#999; margin:4px 0 0;">
+            <a href="/admin">সেটিংস</a> থেকে সেট করা — প্রতিটি নতুন পরীক্ষায় এটাই বসবে, বারবার লিখতে হবে না।
+          </p>
+        <% } else { %>
+          <p style="font-size:13px; color:#b91c1c; margin:10px 0 0;">
+            ⚠ স্কুলের নাম এখনো সেট করা হয়নি। আগে <a href="/admin">সেটিংস পেজ</a> থেকে একবার স্কুলের নাম দিন, তাহলে প্রতিটি পরীক্ষায় বারবার লিখতে হবে না।
+          </p>
+        <% } %>
+
+        <div class="row" style="align-items:flex-end;">
+          <div style="display:flex; flex-direction:column;">
+            <label>পরীক্ষার নাম </label>
+            <input type="text" name="examName" placeholder="বার্ষিক পরীক্ষা" required />
+          </div>
+          <div style="display:flex; flex-direction:column;">
+            <label>সেশন</label>
+            <input type="text" name="session" placeholder="2026" />
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">পরীক্ষা তৈরি করুন</button>
+      </form>
+      <script>
+        const selectAllLink = document.getElementById('selectAllClasses');
+        const checkboxes = document.querySelectorAll('input[name="classSlug"]');
+        let allSelected = false;
+        selectAllLink.addEventListener('click', function (e) {
+          e.preventDefault();
+          allSelected = !allSelected;
+          checkboxes.forEach(cb => { cb.checked = allSelected; });
+          selectAllLink.textContent = allSelected ? 'সব বাদ দিন' : 'সব সিলেক্ট করুন';
+        });
+      </script>
+    <% } %>
+  </div>
+
+  <div class="card">
+    <h2>বিদ্যমান পরীক্ষাসমূহ</h2>
+    <% if (examGroups.length === 0) { %>
+      <p class="empty">এখনো কোনো পরীক্ষা তৈরি করা হয়নি।</p>
+    <% } else { %>
+      <% examGroups.forEach(group => { %>
+        <div style="padding:12px 0; border-bottom:1px solid #f0f0f0;">
+          <div class="group-title">
+            <div>
+              <strong><%= group.examName %></strong>
+              <span style="font-size:12px;color:#888;"><%= group.session %></span>
+            </div>
+            <form method="POST" action="/exams/group/delete" onsubmit="return appConfirm(this, 'এই পরীক্ষার (সব ক্লাসসহ) সব নম্বর/ফলাফল স্থায়ীভাবে মুছে ফেলবেন?')">
+              <input type="hidden" name="examName" value="<%= group.examName %>" />
+              <input type="hidden" name="session" value="<%= group.session %>" />
+              <button type="submit" class="btn btn-danger" style="font-size:12px; padding:6px 10px; white-space:nowrap;">🗑 মুছুন</button>
+            </form>
+          </div>
+          <div class="group-classes">
+            <% group.entries.forEach(e => { %>
+              <div class="list-item">
+                <span class="pill"><%= e.className %></span>
+                <div class="exam-actions">
+                  <a href="/exams/<%= e.key %>/results" class="btn btn-primary">ফলাফল</a>
+                  <a href="/exams/<%= e.key %>" class="btn btn-secondary">খুলুন</a>
+                  <a href="/exams/<%= e.key %>/edit" class="btn btn-secondary">এডিট</a>
+                  <form method="POST" action="/exams/<%= e.key %>/delete" onsubmit="return appConfirm(this, 'এই পরীক্ষাটা ও এর সব নম্বর/ফলাফল স্থায়ীভাবে মুছে ফেলবেন?')">
+                    <button type="submit" class="btn btn-danger">মুছুন</button>
+                  </form>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+  <%- include('_script') %>
+
+    </div>
+  </div>
+</body>
+</html>

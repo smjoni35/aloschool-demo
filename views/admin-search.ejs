@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>খুঁজুন</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>🔎 শিক্ষার্থী খুঁজুন</h1>
+    <form method="GET" action="/admin/search" class="row" style="margin-top:10px; align-items:flex-end;">
+      <div style="flex:1;">
+        <label>নাম বা রোল নম্বর</label>
+        <input type="text" name="q" value="<%= q %>" placeholder="যেমন: রাফিদা আক্তার বা ১২" autofocus />
+      </div>
+      <button type="submit" class="btn">খুঁজুন</button>
+    </form>
+  </div>
+
+  <% if (q) { %>
+    <div class="card">
+      <h2><%= results.length %>টি ফলাফল পাওয়া গেছে</h2>
+      <% if (results.length === 0) { %>
+        <p class="empty">"<%= q %>" এর সাথে মিলে এমন কোনো শিক্ষার্থী পাওয়া যায়নি।</p>
+      <% } else { %>
+        <table>
+          <thead>
+            <tr><th>রোল</th><th>নাম</th><th>ক্লাস</th><th></th></tr>
+          </thead>
+          <tbody>
+            <% results.forEach(function (s) { %>
+              <tr>
+                <td><%= s.roll || s.registration || '-' %></td>
+                <td><%= s.name %></td>
+                <td><%= s.className %></td>
+                <td><a href="/students/<%= s.classSlug %>/<%= s.id %>" class="btn btn-secondary">প্রোফাইল</a></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  <% } %>
+
+    </div>
+  </div>
+</body>
+</html>

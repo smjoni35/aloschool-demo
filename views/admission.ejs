@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ভর্তি আবেদন — <%= settings.schoolName || 'স্কুল' %></title>
+<meta name="description" content="<%= (settings.schoolName || 'স্কুল') %> এ অনলাইনে ভর্তি আবেদন করুন" />
+<link rel="icon" type="image/png" href="/icon-192.png" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+<%- include('_motion') %>
+<%- include('_public-style') %>
+<style>
+  body { padding: 0; }
+  .page-header {
+    background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+    padding: 32px 18px 40px; text-align: center; border-radius: 0 0 28px 28px; margin-bottom: 0;
+  }
+  .page-header h1 { color: #fff; font-size: 22px; margin: 0 0 6px; }
+  .page-header p { color: rgba(255,255,255,0.88); font-size: 13.5px; margin: 0; }
+  .page-content { max-width: 900px; margin: 0 auto; padding: 20px 16px 0; }
+  @media (min-width: 900px) {
+    body.public-home:not(.page-dashboard) { padding: 0; }
+    body.public-home .page-content .card { max-width: none; }
+    .page-header { padding: 48px 24px 56px; }
+    .page-header h1 { font-size: 30px; }
+    .page-header p { font-size: 15px; }
+  }
+</style>
+</head>
+<body class="public-home">
+
+  <%- include('_public-nav', { activePage: 'admission' }) %>
+
+  <div class="page-header">
+    <h1>📝 অনলাইনে ভর্তি আবেদন</h1>
+    <p><%= settings.schoolName || '' %></p>
+  </div>
+
+  <div class="page-content">
+  <div class="card">
+    <% if (submittedId) { %>
+      <p style="background:#f0fdf4; color:#15803d; padding:12px; border-radius:8px; font-size:14px; margin:0 0 16px;">
+        ✅ আপনার আবেদন সফলভাবে জমা হয়েছে। বিদ্যালয় কর্তৃপক্ষ যাচাই করে আপনার সাথে যোগাযোগ করবে।
+        <% if (submittedAdmissionNo) { %>
+          <br/><strong>আপনার আবেদন নম্বর: <%= submittedAdmissionNo %></strong> — ভবিষ্যতে যোগাযোগের সময় এই নম্বরটা উল্লেখ করুন।
+        <% } %>
+      </p>
+      <a href="/admission/<%= submittedId %>/pdf" target="_blank" class="btn btn-secondary btn-block" style="margin-bottom:16px;">📄 পূরণকৃত ফরম PDF ডাউনলোড করুন</a>
+    <% } %>
+
+    <% if (classes.length === 0) { %>
+      <p class="empty">এই মুহূর্তে অনলাইনে ভর্তি আবেদন গ্রহণ করা হচ্ছে না। অনুগ্রহ করে সরাসরি বিদ্যালয়ে যোগাযোগ করুন।</p>
+    <% } else { %>
+      <form method="POST" action="/admission" id="admissionForm">
+        <label>যে ক্লাসে ভর্তি হতে চান *</label>
+        <select name="classSlug" required>
+          <option value="">— সিলেক্ট করুন —</option>
+          <% classes.forEach(c => { %>
+            <option value="<%= c.slug %>"><%= c.name %></option>
+          <% }) %>
+        </select>
+
+        <label>শিক্ষার্থীর পূর্ণ নাম *</label>
+        <input type="text" name="name" required />
+
+        <div class="row">
+          <div>
+            <label>জন্ম তারিখ</label>
+            <input type="date" name="dob" />
+          </div>
+          <div>
+            <label>লিঙ্গ</label>
+            <select name="gender">
+              <option value="">— সিলেক্ট করুন —</option>
+              <option value="ছেলে">ছেলে</option>
+              <option value="মেয়ে">মেয়ে</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>পিতার নাম</label>
+            <input type="text" name="fatherName" />
+          </div>
+          <div>
+            <label>মাতার নাম</label>
+            <input type="text" name="motherName" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>পিতার মোবাইল নম্বর *</label>
+            <input type="tel" name="fatherPhone" placeholder="01xxxxxxxxx" required />
+          </div>
+          <div>
+            <label>মাতার মোবাইল নম্বর</label>
+            <input type="tel" name="motherPhone" placeholder="01xxxxxxxxx" />
+          </div>
+        </div>
+
+        <label>রক্তের গ্রুপ</label>
+        <select name="bloodGroup">
+          <option value="">— জানা না থাকলে খালি রাখুন —</option>
+          <option>A+</option><option>A-</option>
+          <option>B+</option><option>B-</option>
+          <option>AB+</option><option>AB-</option>
+          <option>O+</option><option>O-</option>
+        </select>
+
+        <label>বর্তমান ঠিকানা</label>
+        <textarea name="presentAddress" rows="2"></textarea>
+
+        <label>পূর্ববর্তী বিদ্যালয় (যদি থাকে)</label>
+        <input type="text" name="previousSchool" />
+
+        <label>পূর্ববর্তী বিদ্যালয় থেকে ছেড়ে আসার কারণ</label>
+        <input type="text" name="reasonForLeaving" />
+
+        <label>শিক্ষার্থীর ছবি (ঐচ্ছিক)</label>
+        <input type="file" id="admissionPhotoFile" accept="image/*" />
+        <input type="hidden" name="photoDataUrl" id="admissionPhotoDataUrl" />
+
+        <button type="submit" class="btn btn-primary btn-block">আবেদন জমা দিন</button>
+      </form>
+      <script>
+        const admissionPhotoFile = document.getElementById('admissionPhotoFile');
+        const admissionPhotoHidden = document.getElementById('admissionPhotoDataUrl');
+        admissionPhotoFile.addEventListener('change', async function () {
+          const file = admissionPhotoFile.files[0];
+          if (!file) return;
+          try {
+            const fd = new FormData();
+            fd.append('photo', file);
+            const resp = await fetch('/admission/upload-photo', { method: 'POST', body: fd });
+            const data = await resp.json();
+            if (data.url) { admissionPhotoHidden.value = data.url; return; }
+          } catch (e) { /* fall through to base64 fallback below */ }
+          const reader = new FileReader();
+          reader.onload = function () { admissionPhotoHidden.value = reader.result; };
+          reader.readAsDataURL(file);
+        });
+      </script>
+    <% } %>
+  </div>
+
+  <%- include('_public-footer') %>
+
+  </div>
+
+<button type="button" class="to-top" id="toTop" aria-label="উপরে যান" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+<script>
+  var toTop = document.getElementById('toTop');
+  if (toTop) {
+    var toggleTop = function () { toTop.classList.toggle('show', window.scrollY > 500); };
+    window.addEventListener('scroll', toggleTop, { passive: true });
+    toggleTop();
+  }
+</script>
+<%- include('_floating-contact') %>
+</body>
+</html>

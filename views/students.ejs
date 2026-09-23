@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>শিক্ষার্থী ম্যানেজমেন্ট</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+    <a href="/exams">পরীক্ষা</a>
+  </div>
+
+  <details class="card acc" open>
+    <summary>ক্লাস সিলেক্ট করুন</summary>
+    <% if (classes.length === 0) { %>
+      <p class="empty">এখনো কোনো ক্লাস নেই। নিচে থেকে একটা ক্লাস যোগ করুন।</p>
+    <% } else { %>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <form method="GET" action="/students" style="flex:1;">
+          <select name="class" onchange="this.form.submit()">
+            <% classes.forEach(c => { %>
+              <option value="<%= c.slug %>" <%= c.slug === classSlug ? 'selected' : '' %>><%= c.name %></option>
+            <% }) %>
+          </select>
+        </form>
+        <% if (classSlug) { %>
+          <form method="POST" action="/students/delete-class" onsubmit="return appConfirm(this, 'পুরো ক্লাস ও এর সব শিক্ষার্থী মুছে ফেলবেন? পরীক্ষার পুরোনো ফলাফল থেকে যাবে কিন্তু নতুন কিছু করা যাবে না।')" style="flex:0 0 auto;">
+            <input type="hidden" name="classSlug" value="<%= classSlug %>" />
+            <button type="submit" class="btn btn-danger" style="white-space:nowrap;">❌ এই ক্লাস মুছুন</button>
+          </form>
+        <% } %>
+      </div>
+      <% if (classSlug) { %>
+        <a href="/students/export?class=<%= classSlug %>" class="btn btn-secondary btn-block">⬇️ শ্রেণীভিত্তিক ডাউনলোড</a>
+      <% } %>
+    <% } %>
+
+    <form method="POST" action="/students/add-class" class="row" style="margin-top:12px;">
+      <div>
+        <input type="text" name="className" placeholder="নতুন ক্লাসের নাম (যেমন: Six)" required />
+      </div>
+      <div style="flex:0 0 auto;">
+        <button type="submit" class="btn btn-secondary">+ ক্লাস যোগ করুন</button>
+      </div>
+    </form>
+  </details>
+
+  <% if (classSlug) { %>
+  <details class="card acc" <% if (importResult) { %>open data-force-open<% } %>>
+    <summary>বাল্ক শিক্ষার্থী ইম্পোর্ট</summary>
+    <p class="sub">
+      অনেক শিক্ষার্থী একসাথে যোগ করতে চাইলে নিচের টেমপ্লেট ডাউনলোড করে সেখানে তথ্য পূরণ করে আপলোড করুন।
+      শুধু <strong>নাম</strong> কলামটি বাধ্যতামূলক, বাকিগুলো ফাঁকা রাখা যাবে। প্রতিবার আপলোডে এই ক্লাসেই
+      (<strong><%= classes.find(c => c.slug === classSlug) ? classes.find(c => c.slug === classSlug).name : '' %></strong>)
+      শিক্ষার্থী যোগ হবে।
+    </p>
+
+    <% if (importResult) { %>
+      <% if (importResult.error) { %>
+        <p style="color:#b91c1c; font-size:14px; margin:0 0 12px;">⚠️ <%= importResult.error %></p>
+      <% } else { %>
+        <p style="background:#f0fdf4; color:#15803d; padding:10px 12px; border-radius:8px; font-size:14px; margin:0 0 12px;">
+          ✅ <%= importResult.added %> জন শিক্ষার্থী যোগ হয়েছে।
+          <% if (importResult.skippedDuplicate > 0) { %> <%= importResult.skippedDuplicate %> জন বাদ পড়েছে (আগে থেকেই আছে)।<% } %>
+          <% if (importResult.skippedNoName > 0) { %> <%= importResult.skippedNoName %> টি সারি বাদ পড়েছে (নাম নেই)।<% } %>
+        </p>
+      <% } %>
+    <% } %>
+
+    <a href="/students/import/template" class="btn btn-secondary">⬇️ টেমপ্লেট ডাউনলোড করুন</a>
+
+    <form method="POST" action="/students/import" enctype="multipart/form-data" style="margin-top:12px;">
+      <input type="hidden" name="classSlug" value="<%= classSlug %>" />
+      <label>পূরণ করা ফাইল আপলোড করুন (.xlsx / .csv)</label>
+      <input type="file" name="file" accept=".xlsx,.xls,.csv" required />
+      <button type="submit" class="btn btn-primary btn-block" style="margin-top:10px;">আপলোড ও ইম্পোর্ট করুন</button>
+    </form>
+  </details>
+
+  <details class="card acc">
+    <summary>নতুন শিক্ষার্থী যোগ করুন (একজন করে)</summary>
+    <form method="POST" action="/students/add">
+      <input type="hidden" name="classSlug" value="<%= classSlug %>" />
+      <div class="row">
+        <div>
+          <label>নাম</label>
+          <input type="text" name="name" required />
+        </div>
+        <div style="flex:0 0 90px;">
+          <label>রোল</label>
+          <input type="text" name="roll" />
+        </div>
+      </div>
+      <label>শিফট</label>
+      <select name="section">
+        <option value="">— সিলেক্ট করুন —</option>
+        <option value="মর্নিং">মর্নিং</option>
+        <option value="ডে">ডে</option>
+      </select>
+      <p class="sub" style="margin:8px 0 0;">রেজিস্ট্রেশন নম্বর স্বয়ংক্রিয়ভাবে তৈরি হবে।</p>
+      <button type="submit" class="btn btn-primary btn-block">শিক্ষার্থী যোগ করুন</button>
+    </form>
+  </details>
+
+  <details class="card acc" open>
+    <summary>শিক্ষার্থী তালিকা (<%= students.length %> জন)</summary>
+    <% if (students.length === 0) { %>
+      <div class="empty-state">
+        <div class="empty-state-icon">🧑‍🎓</div>
+        <p class="empty">এই ক্লাসে এখনো কোনো শিক্ষার্থী যোগ করা হয়নি।</p>
+      </div>
+    <% } else { %>
+      <% if (students.length > 5) { %>
+        <div class="student-search-wrap">
+          <span class="student-search-icon">🔍</span>
+          <input type="text" id="studentSearch" class="student-search" placeholder="নাম বা রোল দিয়ে খুঁজুন..." oninput="filterStudents(this.value)" autocomplete="off" />
+        </div>
+      <% } %>
+      <p id="studentListEmpty" class="empty" style="display:none;">কোনো শিক্ষার্থী পাওয়া যায়নি।</p>
+      <div id="studentList">
+      <% const avatarPalette = [['#3b82f6','#2563eb'],['#8b5cf6','#7c3aed'],['#10b981','#059669'],['#f59e0b','#d97706'],['#ef4444','#dc2626'],['#06b6d4','#0891b2']]; %>
+      <% students.forEach(s => { %>
+        <% const p = avatarPalette[s.name.charCodeAt(0) % avatarPalette.length]; %>
+        <div class="list-item student-row" id="view-<%= s.id %>" data-search="<%= (s.name + ' ' + (s.roll || '')).toLowerCase() %>">
+          <a href="/students/<%= classSlug %>/<%= s.id %>" class="student-avatar" style="background:linear-gradient(135deg, <%= p[0] %>, <%= p[1] %>);">
+            <% if (s.photoDataUrl) { %>
+              <img src="<%= s.photoDataUrl %>" alt="" />
+            <% } else { %>
+              <%= s.name.trim().charAt(0) %>
+            <% } %>
+          </a>
+          <div class="student-info">
+            <a href="/students/<%= classSlug %>/<%= s.id %>" class="student-name"><%= s.name %></a>
+            <div class="student-meta">
+              <span class="pill">রোল <%= s.roll || '—' %></span>
+              <% if (s.section) { %><span class="pill pill-purple"><%= s.section %></span><% } %>
+            </div>
+          </div>
+          <div class="subject-actions">
+            <a href="/students/<%= classSlug %>/<%= s.id %>" class="btn btn-secondary">প্রোফাইল</a>
+            <a href="/students/<%= classSlug %>/<%= s.id %>/fees" class="btn btn-secondary">💳 ফি</a>
+            <% const callNumber = s.fatherPhone || s.motherPhone; %>
+            <% if (callNumber) { %>
+              <a href="tel:<%= callNumber %>" class="btn btn-secondary">📞 কল</a>
+            <% } else { %>
+              <span class="btn btn-secondary" style="opacity:.5; cursor:not-allowed;" title="কোনো মোবাইল নম্বর সংরক্ষিত নেই">📞 কল</span>
+            <% } %>
+            <form method="POST" action="/students/delete" onsubmit="return appConfirm(this, 'মুছে ফেলবেন?')">
+              <input type="hidden" name="classSlug" value="<%= classSlug %>" />
+              <input type="hidden" name="id" value="<%= s.id %>" />
+              <button type="submit" class="btn btn-danger">মুছুন</button>
+            </form>
+          </div>
+        </div>
+      <% }) %>
+      </div>
+      <% if (students.length > 5) { %>
+        <script>
+          function filterStudents(q) {
+            q = q.trim().toLowerCase();
+            var rows = document.querySelectorAll('#studentList .student-row');
+            var visible = 0;
+            rows.forEach(function (r) {
+              var match = !q || r.getAttribute('data-search').indexOf(q) !== -1;
+              r.style.display = match ? '' : 'none';
+              if (match) visible++;
+            });
+            document.getElementById('studentListEmpty').style.display = visible === 0 ? 'block' : 'none';
+          }
+        </script>
+      <% } %>
+    <% } %>
+  </details>
+  <% } %>
+  <%- include('_script') %>
+
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>শিক্ষক অ্যাকাউন্ট — স্কুল ম্যানেজমেন্ট সিস্টেম</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>🏫 শিক্ষক লগইন অ্যাকাউন্ট</h1>
+    <p class="sub">
+      শুধু ওয়েবসাইটের <a href="/admin/website" target="_blank">"শিক্ষক / স্টাফ"</a> তালিকায় থাকা শিক্ষকদেরই
+      লগইন অ্যাকাউন্ট দেওয়া যাবে — তালিকার বাইরে কারও অ্যাকাউন্ট তৈরি করা যাবে না। কাউকে ওই তালিকা থেকে বাদ
+      দিলে তার লগইন অ্যাক্সেসও সাথে সাথে বন্ধ হয়ে যাবে। শিক্ষকরা
+      <a href="/teacher/login" target="_blank">/teacher/login</a> পেজ থেকে লগইন করে নিজেরা পরীক্ষা তৈরি ও
+      নিজের বিষয়ের নম্বর এন্ট্রি করতে পারবেন। একজন শিক্ষকের এন্ট্রি করা নম্বর অন্য শিক্ষক শুধু দেখতে পারবেন,
+      এডিট করতে পারবেন না।
+    </p>
+
+    <% if (error) { %>
+      <p style="color:#b91c1c; font-size:14px; margin:0 0 12px;"><%= error %></p>
+    <% } %>
+
+    <% if (hasNoWebsiteTeachers) { %>
+      <p class="empty">
+        এখনো কোনো শিক্ষক <a href="/admin/website" target="_blank">ওয়েবসাইট পেজে</a> যোগ করা নেই।
+        আগে সেখান থেকে শিক্ষক যোগ করুন, তারপর এখানে তাকে লগইন অ্যাকাউন্ট দেওয়া যাবে।
+      </p>
+    <% } else if (availableTeachers.length === 0) { %>
+      <p class="empty">
+        ওয়েবসাইটের তালিকার সবাইকে ইতিমধ্যে লগইন অ্যাকাউন্ট দেওয়া হয়ে গেছে। নতুন কাউকে যোগ করতে হলে আগে
+        <a href="/admin/website" target="_blank">ওয়েবসাইট পেজে</a> তাকে শিক্ষক হিসেবে যোগ করুন।
+      </p>
+    <% } else { %>
+      <form method="POST" action="/admin/teacher-accounts/add">
+        <label>শিক্ষক (তালিকা থেকে বেছে নিন)</label>
+        <select name="sourceTeacherId" required>
+          <option value="">-- বেছে নিন --</option>
+          <% availableTeachers.forEach(t => { %>
+            <option value="<%= t.id %>"><%= t.name %><% if (t.designation) { %> (<%= t.designation %>)<% } %></option>
+          <% }) %>
+        </select>
+        <label>পাসওয়ার্ড</label>
+        <input type="text" name="password" placeholder="একটা পাসওয়ার্ড দিন" required />
+        <button type="submit" class="btn btn-primary btn-block">অ্যাকাউন্ট তৈরি করুন</button>
+      </form>
+    <% } %>
+  </div>
+
+  <div class="card">
+    <h2>বিদ্যমান শিক্ষক অ্যাকাউন্ট</h2>
+    <% if (accounts.length === 0) { %>
+      <p class="empty">এখনো কোনো শিক্ষক অ্যাকাউন্ট তৈরি করা হয়নি।</p>
+    <% } else { %>
+      <% accounts.forEach(a => { %>
+        <div class="list-item" id="view-teacher-<%= a.id %>" style="flex-direction:column; align-items:stretch; gap:10px;">
+          <div>
+            <strong><%= a.name %></strong>
+            <% if (!listedIds.has(a.sourceTeacherId)) { %>
+              <span class="pill" style="margin-left:6px; background:#fee2e2; color:#b91c1c;">⚠️ তালিকায় আর নেই — লগইন বন্ধ</span>
+            <% } %>
+          </div>
+          <div class="exam-actions" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;">
+            <% if (a.profile && a.profile.phone) { %>
+              <a href="tel:<%= a.profile.phone %>" class="btn btn-secondary btn-stack"><span class="ic">📞</span><span>কল করুন</span></a>
+            <% } else { %>
+              <span></span>
+            <% } %>
+            <a href="/admin/teacher-accounts/<%= a.id %>/profile" class="btn btn-secondary btn-stack"><span class="ic">👤</span><span>প্রোফাইল দেখুন</span></a>
+            <button type="button" class="btn btn-secondary btn-stack" onclick="toggleReset('<%= a.id %>')"><span class="ic">🔑</span><span>পাসওয়ার্ড পরিবর্তন</span></button>
+            <form method="POST" action="/admin/teacher-accounts/<%= a.id %>/delete" style="width:100%;" onsubmit="return appConfirm(this, 'এই শিক্ষকের অ্যাকাউন্ট মুছে ফেলবেন? তার এন্ট্রি করা নম্বর মুছে যাবে না, শুধু লগইন অ্যাকাউন্ট মুছে যাবে।')">
+              <button type="submit" class="btn btn-danger btn-stack" style="width:100%;"><span class="ic">🗑️</span><span>মুছুন</span></button>
+            </form>
+          </div>
+        </div>
+        <div id="reset-teacher-<%= a.id %>" style="display:none; padding:10px 0 14px; border-bottom:1px solid #f0f0f0;">
+          <form method="POST" action="/admin/teacher-accounts/<%= a.id %>/reset-password" class="row" style="align-items:flex-end;">
+            <div style="flex:2;">
+              <label>নতুন পাসওয়ার্ড</label>
+              <input type="text" name="password" placeholder="নতুন পাসওয়ার্ড" required />
+            </div>
+            <div style="flex:0 0 auto;">
+              <button type="submit" class="btn btn-primary">সেভ করুন</button>
+            </div>
+          </form>
+        </div>
+      <% }) %>
+      <script>
+        function toggleReset(id) {
+          const el = document.getElementById('reset-teacher-' + id);
+          el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
+      </script>
+    <% } %>
+  </div>
+
+    </div>
+  </div>
+</body>
+</html>

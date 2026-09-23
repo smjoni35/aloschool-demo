@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title><%= settings.schoolName || 'স্কুল ম্যানেজমেন্ট সিস্টেম' %> — এডমিন প্যানেল</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body class="page-dashboard">
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="dash-wrap">
+
+  <div class="card dashboard-hero">
+    <div class="brand-header" style="justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:14px;">
+      <div style="display:flex; gap:12px; align-items:center;">
+        <% if (settings.logoDataUrl) { %>
+          <img class="brand-logo" src="<%= settings.logoDataUrl %>" alt="লোগো" />
+        <% } %>
+        <div>
+          <h1 style="margin:0; font-size:18px;">আসসালামু আলাইকুম, অ্যাডমিন!</h1>
+          <p class="sub" style="margin:2px 0 0;"><%= settings.schoolName || 'স্কুল ম্যানেজমেন্ট সিস্টেম' %>-এর প্রশাসনিক ড্যাশবোর্ডে আপনাকে স্বাগতম।</p>
+        </div>
+      </div>
+      <div class="date-pill">
+        <div style="font-weight:700;"><%= todayBn.date %></div>
+        <div style="font-size:11px; color:#666; margin-top:2px;"><%= todayBn.weekday %></div>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <a href="/students" class="stat-card tinted bg-blue">
+        <div class="stat-icon" style="background:#2563eb;">🧑</div>
+        <div class="num"><%= totalStudents %></div>
+        <div class="label">মোট শিক্ষার্থী</div>
+        <% if (trends && trends.totalStudents) { %>
+          <div class="trend trend-<%= trends.totalStudents.dir %>"><%= trends.totalStudents.dir === 'up' ? '↑' : '↓' %> <%= trends.totalStudents.diff %> গত মাস থেকে</div>
+        <% } %>
+      </a>
+      <a href="/students" class="stat-card tinted bg-purple">
+        <div class="stat-icon" style="background:#7c3aed;">🏫</div>
+        <div class="num"><%= totalClasses %></div>
+        <div class="label">মোট ক্লাস</div>
+      </a>
+      <a href="/exams" class="stat-card tinted bg-orange">
+        <div class="stat-icon" style="background:#d97706;">📝</div>
+        <div class="num"><%= totalExams %></div>
+        <div class="label">মোট পরীক্ষা</div>
+        <% if (trends && trends.totalExams) { %>
+          <div class="trend trend-<%= trends.totalExams.dir %>"><%= trends.totalExams.dir === 'up' ? '↑' : '↓' %> <%= trends.totalExams.diff %> গত মাস থেকে</div>
+        <% } %>
+      </a>
+      <a href="/admin/teacher-accounts" class="stat-card tinted bg-green">
+        <div class="stat-icon" style="background:#16a34a;">🎓</div>
+        <div class="num"><%= totalTeachers %></div>
+        <div class="label">মোট শিক্ষক</div>
+        <% if (trends && trends.totalTeachers) { %>
+          <div class="trend trend-<%= trends.totalTeachers.dir %>"><%= trends.totalTeachers.dir === 'up' ? '↑' : '↓' %> <%= trends.totalTeachers.diff %> গত মাস থেকে</div>
+        <% } %>
+      </a>
+      <a href="/admin/fees/dues" class="stat-card tinted bg-red">
+        <div class="stat-icon" style="background:#dc2626;">💰</div>
+        <div class="num">৳<%= totalDue.toLocaleString('en-US') %></div>
+        <div class="label">মোট বকেয়া<% if (studentsWithDue > 0) { %> (<%= studentsWithDue %> জন)<% } %></div>
+        <% if (trends && trends.totalDue) { %>
+          <div class="trend trend-<%= trends.totalDue.dir === 'up' ? 'down' : 'up' %>"><%= trends.totalDue.dir === 'up' ? '↑' : '↓' %> <%= trends.totalDue.percent %>% গত মাস থেকে</div>
+        <% } %>
+      </a>
+    </div>
+  </div>
+
+  <div class="dash-grid">
+    <div class="dash-col dash-left">
+  <div class="card dc-quick">
+    <p class="section-label" style="margin-top:0;">দ্রুত কাজ</p>
+    <div class="quick-grid">
+      <a href="/students" class="quick-item">
+        <span class="qi-icon" style="background:#dbeafe; color:#2563eb;">🧑</span> শিক্ষার্থী
+      </a>
+      <a href="/admissions" class="quick-item" style="position:relative;">
+        <span class="qi-icon" style="background:#dcfce7; color:#16a34a;">📝</span> ভর্তি
+        <% if (pendingAdmissions > 0) { %><span class="pill" style="position:absolute; top:-4px; right:6px; background:#fee2e2; color:#b91c1c;"><%= pendingAdmissions %></span><% } %>
+      </a>
+      <a href="/admin/fees" class="quick-item">
+        <span class="qi-icon" style="background:#ede9fe; color:#7c3aed;">💳</span> ফি গ্রহণ
+      </a>
+      <a href="/admin/attendance/student" class="quick-item">
+        <span class="qi-icon" style="background:#d1fae5; color:#059669;">✅</span> উপস্থিতি
+      </a>
+      <a href="/exams" class="quick-item">
+        <span class="qi-icon" style="background:#fee2e2; color:#dc2626;">🏆</span> রেজাল্ট
+      </a>
+      <a href="/admin/routine" class="quick-item">
+        <span class="qi-icon" style="background:#ffedd5; color:#d97706;">🗓️</span> রুটিন
+      </a>
+      <a href="/admin/teacher-accounts" class="quick-item">
+        <span class="qi-icon" style="background:#e0e7ff; color:#4338ca;">🏫</span> শিক্ষক
+      </a>
+      <a href="/admin/fees/dues" class="quick-item">
+        <span class="qi-icon" style="background:#fee2e2; color:#b91c1c;">📉</span> বকেয়া
+      </a>
+    </div>
+  </div>
+
+  <div class="card dc-trend">
+    <p class="section-label" style="margin-top:0;">ফি আদায়ের প্রবণতা (গত ৬ মাস)</p>
+    <% const maxTrend = Math.max(1, ...collectionTrend.map(m => m.amount)); %>
+    <% if (collectionTrend.every(m => m.amount === 0)) { %>
+      <p class="empty">এখনো কোনো মাসে ফি আদায়ের রেকর্ড নেই।</p>
+    <% } else { %>
+    <div class="trend-chart">
+      <% collectionTrend.forEach(function (m) { %>
+        <div class="tr-col">
+          <div class="tr-amt"><%= m.amount > 0 ? '৳' + (m.amount >= 1000 ? Math.round(m.amount/1000) + 'k' : m.amount) : '' %></div>
+          <div class="tr-bar" style="--r:<%= (m.amount / maxTrend).toFixed(4) %>;"></div>
+          <div class="tr-lbl"><%= m.label %></div>
+        </div>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+
+  <div class="card dc-act">
+    <p class="section-label" style="margin-top:0;">সাম্প্রতিক কার্যক্রম</p>
+    <% if (recentActivities.length === 0) { %>
+      <p class="empty">এখনো কোনো কার্যক্রম রেকর্ড হয়নি।</p>
+    <% } else { %>
+      <% recentActivities.forEach(function (a) { %>
+        <% if (a.link) { %>
+        <a href="<%= a.link %>" class="activity-row" style="text-decoration:none; color:inherit;">
+          <span class="ai-icon" style="background:<%= a.style.bg %>; color:<%= a.style.color %>;"><%= a.style.icon %></span>
+          <div>
+            <div class="ai-text"><%= a.message %></div>
+            <div class="ai-time"><%= a.timeAgo %></div>
+          </div>
+          <span class="arrow">›</span>
+        </a>
+        <% } else { %>
+        <div class="activity-row">
+          <span class="ai-icon" style="background:<%= a.style.bg %>; color:<%= a.style.color %>;"><%= a.style.icon %></span>
+          <div>
+            <div class="ai-text"><%= a.message %></div>
+            <div class="ai-time"><%= a.timeAgo %></div>
+          </div>
+        </div>
+        <% } %>
+      <% }) %>
+      <a href="/admin/notifications" class="menu-btn" style="margin-top:10px; margin-bottom:0;"><span class="icon">🔔</span> সব দেখুন <span class="arrow">›</span></a>
+    <% } %>
+  </div>
+    </div>
+    <div class="dash-col dash-right">
+  <div class="card dc-tasks">
+    <p class="section-label" style="margin-top:0;">গুরুত্বপূর্ণ / অপেক্ষমাণ কাজ</p>
+    <% if (urgentTasks.length === 0) { %>
+      <p class="empty">সব কাজ সম্পন্ন — এই মুহূর্তে কিছু অপেক্ষমাণ নেই।</p>
+    <% } else { %>
+      <% urgentTasks.forEach(function (t) { %>
+        <a href="<%= t.href %>" class="task-row">
+          <span class="task-ic" style="background:<%= t.bg %>; color:<%= t.color %>;"><%= t.icon %></span>
+          <span class="task-text"><%= t.text %></span>
+          <span class="task-count" style="background:<%= t.bg %>; color:<%= t.color %>;"><%= t.count %></span>
+          <span class="arrow">›</span>
+        </a>
+      <% }) %>
+    <% } %>
+  </div>
+
+  <div class="card dc-attend">
+    <p class="section-label" style="margin-top:0;">আজকের উপস্থিতি</p>
+    <% if (attendanceToday.total > 0) { %>
+      <div class="donut-row">
+        <svg viewBox="0 0 140 140" width="140" height="140">
+          <circle cx="70" cy="70" r="<%= attendanceToday.radius %>" fill="none" stroke="#eef2f7" stroke-width="14" />
+          <% attendanceToday.donut.forEach(function (seg) { %>
+            <circle cx="70" cy="70" r="<%= attendanceToday.radius %>" fill="none" stroke="<%= seg.color %>" stroke-width="14"
+              stroke-dasharray="<%= seg.dasharray %>" stroke-dashoffset="<%= seg.dashoffset %>"
+              transform="rotate(-90 70 70)" />
+          <% }) %>
+          <text x="70" y="65" text-anchor="middle" font-size="24" font-weight="700" fill="#111"><%= attendanceToday.percentage %>%</text>
+          <text x="70" y="84" text-anchor="middle" font-size="10" fill="#888">উপস্থিতির হার</text>
+        </svg>
+        <div class="donut-legend">
+          <div class="dl-row"><span class="dl-dot" style="background:#16a34a;"></span> উপস্থিত <span class="dl-num"><%= attendanceToday.present %></span></div>
+          <div class="dl-row"><span class="dl-dot" style="background:#dc2626;"></span> অনুপস্থিত <span class="dl-num"><%= attendanceToday.absent %></span></div>
+          <div class="dl-row"><span class="dl-dot" style="background:#d97706;"></span> ছুটি <span class="dl-num"><%= attendanceToday.leave %></span></div>
+          <div class="dl-row" style="border-top:1px solid #eee; margin-top:6px; padding-top:6px;">মোট শিক্ষার্থী <span class="dl-num"><%= totalStudents %></span></div>
+        </div>
+      </div>
+    <% } else { %>
+      <p class="empty">আজ এখনো কোনো ক্লাসের উপস্থিতি নেওয়া হয়নি।</p>
+    <% } %>
+  </div>
+
+  <div class="card dc-fin">
+    <p class="section-label" style="margin-top:0;">আয়-ব্যয় সারাংশ (এই মাস)</p>
+    <div class="fs-row"><span class="fs-ic" style="background:#d1fae5; color:#059669;">💰</span> এই মাসে আদায় (আয়) <span class="fs-val" style="color:#16a34a;">৳<%= feeSummaryCard.thisMonthPaid.toLocaleString('en-US') %></span></div>
+    <div class="fs-row"><span class="fs-ic" style="background:#fee2e2; color:#dc2626;">🎓</span> শিক্ষক বেতন পরিশোধ <span class="fs-val" style="color:#dc2626;">৳<%= feeSummaryCard.salaryPaidThisMonth.toLocaleString('en-US') %></span></div>
+    <div class="fs-row"><span class="fs-ic" style="background:#fee2e2; color:#dc2626;">🧾</span> অন্যান্য খরচ (বিদ্যুৎ, চিকিৎসা, মেটেরিয়াল...) <span class="fs-val" style="color:#dc2626;">৳<%= feeSummaryCard.otherExpenseThisMonth.toLocaleString('en-US') %></span></div>
+    <div class="fs-row"><span class="fs-ic" style="background:#fee2e2; color:#dc2626;">🏦</span> ঋণ পরিশোধ <span class="fs-val" style="color:#dc2626;">৳<%= feeSummaryCard.loanRepaymentThisMonth.toLocaleString('en-US') %></span></div>
+    <div class="fs-row" style="border-top:1px solid #eee; margin-top:4px; padding-top:10px;"><span class="fs-ic" style="background:#fee2e2; color:#b91c1c;">📤</span> মোট ব্যয় <span class="fs-val" style="color:#b91c1c;">৳<%= feeSummaryCard.totalExpenseThisMonth.toLocaleString('en-US') %></span></div>
+    <div class="fs-row"><span class="fs-ic" style="background:<%= feeSummaryCard.netThisMonth >= 0 ? '#d1fae5' : '#fee2e2' %>; color:<%= feeSummaryCard.netThisMonth >= 0 ? '#059669' : '#dc2626' %>;">📊</span> নেট (আয় - ব্যয়) <span class="fs-val" style="color:<%= feeSummaryCard.netThisMonth >= 0 ? '#16a34a' : '#dc2626' %>;">৳<%= feeSummaryCard.netThisMonth.toLocaleString('en-US') %></span></div>
+    <div class="fs-row"><span class="fs-ic" style="background:#ede9fe; color:#7c3aed;">📋</span> মোট ফি (মাসিক প্রত্যাশিত) <span class="fs-val">৳<%= feeSummaryCard.monthlyFeeTotal.toLocaleString('en-US') %></span></div>
+    <% if (feeSummaryCard.totalOutstandingLoan > 0) { %>
+      <div class="fs-row"><span class="fs-ic" style="background:#fef3c7; color:#92400e;">🏦</span> মোট বকেয়া ঋণ <span class="fs-val" style="color:#b45309;">৳<%= feeSummaryCard.totalOutstandingLoan.toLocaleString('en-US') %></span></div>
+    <% } %>
+    <% if (feeSummaryCard.incomePercent > 0 || feeSummaryCard.duePercent > 0) { %>
+      <div class="fs-bar">
+        <div class="fs-bar-fill" style="width:<%= feeSummaryCard.incomePercent %>%;"></div>
+      </div>
+      <div class="fs-bar-labels">
+        <span style="color:#16a34a;">আদায় <%= feeSummaryCard.incomePercent %>%</span>
+        <span style="color:#dc2626;">বকেয়া <%= feeSummaryCard.duePercent %>%</span>
+      </div>
+    <% } %>
+    <a href="/admin/expenses" class="menu-btn" style="margin-top:14px; margin-bottom:0;"><span class="icon">🧾</span> ব্যয় ব্যবস্থাপনা <span class="arrow">›</span></a>
+    <a href="/admin/loans" class="menu-btn" style="margin-top:8px; margin-bottom:0;"><span class="icon">🏦</span> ঋণ ব্যবস্থাপনা <span class="arrow">›</span></a>
+  </div>
+    </div>
+  </div>
+
+  </div>
+
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ভর্তির আবেদন</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/students">শিক্ষার্থী</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>📝 ভর্তির আবেদন (<%= pending.length %>টি)</h1>
+    <p class="sub">অনলাইনে জমা হওয়া আবেদন — অনুমোদন করলে সংশ্লিষ্ট ক্লাসের শিক্ষার্থী তালিকায় যোগ হবে।</p>
+
+    <form method="GET" action="/admissions" class="row" style="margin-bottom:16px;">
+      <input type="text" name="q" value="<%= q || '' %>" placeholder="আবেদন নম্বর, নাম বা মোবাইল দিয়ে সার্চ করুন" style="flex:1;" />
+      <button type="submit" class="btn btn-secondary" style="flex:0 0 auto;">🔍 সার্চ</button>
+      <% if (q) { %><a href="/admissions" class="btn btn-secondary" style="flex:0 0 auto;">✕ মুছুন</a><% } %>
+    </form>
+
+    <% if (pending.length === 0) { %>
+      <p class="empty"><%= q ? 'এই সার্চে কোনো আবেদন পাওয়া যায়নি।' : 'এই মুহূর্তে কোনো নতুন আবেদন নেই।' %></p>
+    <% } else { %>
+      <% pending.forEach(a => { %>
+        <div style="border:1px solid #f0f0f0; border-radius:10px; padding:14px; margin-bottom:12px;">
+          <div style="display:flex; gap:12px; align-items:flex-start;">
+            <% if (a.photoDataUrl) { %>
+              <img src="<%= a.photoDataUrl %>" alt="<%= a.name %>" style="width:56px; height:56px; object-fit:cover; border-radius:8px; flex-shrink:0;" />
+            <% } %>
+            <div style="flex:1; min-width:0;">
+              <div style="font-weight:600; font-size:15px;"><%= a.name %> <span class="pill"><%= a.className %></span></div>
+              <% if (a.admissionNo) { %>
+                <div style="color:#888; font-size:12px; margin-top:2px;">আবেদন নম্বর: <%= a.admissionNo %></div>
+              <% } %>
+              <div style="color:#666; font-size:13px; margin-top:4px;">
+                <% if (a.fatherName) { %>পিতা: <%= a.fatherName %><br/><% } %>
+                <% if (a.motherName) { %>মাতা: <%= a.motherName %><br/><% } %>
+                <% if (a.dob) { %>জন্ম তারিখ: <%= a.dob %><br/><% } %>
+                <% if (a.gender) { %>লিঙ্গ: <%= a.gender %><br/><% } %>
+                <% if (a.fatherPhone) { %>পিতার মোবাইল: <%= a.fatherPhone %><br/><% } %>
+                <% if (a.motherPhone) { %>মাতার মোবাইল: <%= a.motherPhone %><br/><% } %>
+                <% if (a.previousSchool) { %>পূর্ববর্তী বিদ্যালয়: <%= a.previousSchool %><br/><% } %>
+                <% if (a.reasonForLeaving) { %>ছেড়ে আসার কারণ: <%= a.reasonForLeaving %><br/><% } %>
+                <% if (a.presentAddress) { %>ঠিকানা: <%= a.presentAddress %><br/><% } %>
+              </div>
+            </div>
+          </div>
+          <div class="row" style="margin-top:12px; align-items:stretch; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <a href="/admission/<%= a.id %>/pdf" target="_blank" class="btn btn-secondary" style="padding:11px 14px; text-align:center; display:flex; align-items:center; justify-content:center;">📄 PDF</a>
+            <form method="POST" action="/admissions/<%= a.id %>/approve" style="display:contents">
+              <input type="text" name="session" placeholder="সেশন" title="কোন সেশনের জন্য ভর্তি নিশ্চিত করছেন (যেমন 2027) — খালি রাখলে চলতি বছর ধরা হবে" style="width:100%; box-sizing:border-box;" />
+              <button type="submit" class="btn btn-primary btn-block" style="margin-top:0; white-space:nowrap; padding-left:6px; padding-right:6px; font-size:14px;">✅ অনুমোদন করুন</button>
+            </form>
+            <form method="POST" action="/admissions/<%= a.id %>/reject" style="display:contents" onsubmit="return appConfirm(this, 'এই আবেদনটি বাতিল করবেন?')">
+              <button type="submit" class="btn btn-danger btn-block" style="margin-top:0; white-space:nowrap; padding-left:6px; padding-right:6px; font-size:14px;">❌ বাতিল করুন</button>
+            </form>
+          </div>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+
+    </div>
+  </div>
+</body>
+</html>

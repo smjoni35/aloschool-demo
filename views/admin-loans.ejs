@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ঋণ ব্যবস্থাপনা</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>🏦 নতুন ঋণ যোগ করুন</h1>
+    <% if (saved) { %><p style="color:#16a34a; font-weight:600;">✓ ঋণ যোগ হয়েছে।</p><% } %>
+    <form method="POST" action="/admin/loans/add">
+      <label>ঋণদাতা / উৎস</label>
+      <input type="text" name="lender" placeholder="যেমন: সোনালী ব্যাংক / রহিম সাহেব" required />
+
+      <div class="row" style="margin-top:10px;">
+        <div>
+          <label>ঋণের পরিমাণ</label>
+          <input type="number" name="amount" min="1" step="1" required />
+        </div>
+        <div>
+          <label>নেওয়ার তারিখ</label>
+          <input type="date" name="date" value="<%= new Date().toISOString().slice(0,10) %>" />
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <div>
+          <label>সুদের হার (ঐচ্ছিক, %)</label>
+          <input type="number" name="interestRate" min="0" step="0.01" placeholder="যেমন: 5" />
+        </div>
+        <div>
+          <label>পরিশোধের ধরন</label>
+          <select name="repaymentType">
+            <% repaymentTypes.forEach(function (t) { %>
+              <option value="<%= t %>"><%= t %></option>
+            <% }) %>
+          </select>
+        </div>
+      </div>
+
+      <label style="margin-top:10px;">নোট (ঐচ্ছিক)</label>
+      <input type="text" name="note" placeholder="যেমন: ভবন সংস্কারের জন্য নেওয়া" />
+
+      <button type="submit" class="btn btn-primary btn-block">ঋণ যোগ করুন</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0;">মোট বকেয়া ঋণ: ৳ <%= totalOutstanding.toLocaleString('en-US') %></h2>
+    <% if (loans.length === 0) { %>
+      <p class="empty">এখনো কোনো ঋণ যোগ করা হয়নি।</p>
+    <% } else { %>
+      <table>
+        <thead>
+          <tr><th>ঋণদাতা</th><th>তারিখ</th><th>মোট</th><th>পরিশোধিত</th><th>বাকি</th><th>অবস্থা</th><th></th></tr>
+        </thead>
+        <tbody>
+          <% loans.forEach(function (l) { %>
+            <tr>
+              <td><a href="/admin/loans/<%= l.id %>"><%= l.lender %></a></td>
+              <td><%= l.date %></td>
+              <td>৳ <%= l.amount.toLocaleString('en-US') %></td>
+              <td style="color:#16a34a;">৳ <%= l.totalPaid.toLocaleString('en-US') %></td>
+              <td style="color:#b91c1c; font-weight:600;">৳ <%= l.remaining.toLocaleString('en-US') %></td>
+              <td><span style="padding:2px 8px; border-radius:10px; font-size:0.85em; background:<%= l.status === 'পরিশোধিত' ? '#d1fae5' : '#fef3c7' %>; color:<%= l.status === 'পরিশোধিত' ? '#059669' : '#92400e' %>;"><%= l.status %></span></td>
+              <td><a href="/admin/loans/<%= l.id %>" class="btn">দেখুন</a></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+
+    </div>
+  </div>
+</body>
+</html>

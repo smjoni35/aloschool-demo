@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>শিক্ষার্থী উপস্থিতি রিপোর্ট — <%= settings.schoolName || 'স্কুল ম্যানেজমেন্ট সিস্টেম' %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="<%= restricted ? '/teacher/attendance' : '/panel' %>">🏠 হোম</a>
+    <a href="<%= restricted ? '/teacher/logout' : '/logout' %>">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>📊 শিক্ষার্থী উপস্থিতি রিপোর্ট</h1>
+
+    <% if (!restricted) { %>
+      <form method="GET" action="<%= baseUrl %>">
+        <div class="row">
+          <div>
+            <label>সেশন</label>
+            <select name="session" onchange="this.form.submit()">
+              <% sessions.forEach(s => { %>
+                <option value="<%= s %>" <%= s === session ? 'selected' : '' %>><%= s %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div>
+            <label>শিফট</label>
+            <select name="shift" onchange="this.form.submit()">
+              <option value="">— বেছে নিন —</option>
+              <option value="morning" <%= shift === 'morning' ? 'selected' : '' %>>মর্নিং</option>
+              <option value="day" <%= shift === 'day' ? 'selected' : '' %>>ডে</option>
+            </select>
+          </div>
+        </div>
+        <% if (shift) { %>
+          <label>ক্লাস</label>
+          <select name="classSlug" onchange="this.form.submit()">
+            <option value="">— বেছে নিন —</option>
+            <% classesInShift.forEach(c => { %>
+              <option value="<%= c.slug %>" <%= c.slug === classSlug ? 'selected' : '' %>><%= c.name %></option>
+            <% }) %>
+          </select>
+        <% } %>
+      </form>
+    <% } else { %>
+      <p class="sub" style="margin:0 0 10px;"><span class="pill"><%= SHIFT_LABELS[shift] %></span> — <strong><%= className %></strong></p>
+    <% } %>
+
+    <% if (classSlug) { %>
+      <div class="row" style="margin-top:14px;">
+        <a class="btn <%= mode === 'daily' ? 'btn-primary' : 'btn-secondary' %>" style="flex:1; text-align:center;"
+           href="<%= baseUrl %>?<%= restricted ? 'shift=' + shift + '&' : 'session=' + session + '&shift=' + shift + '&classSlug=' + classSlug + '&' %>mode=daily&date=<%= date %>">দৈনিক</a>
+        <a class="btn <%= mode === 'monthly' ? 'btn-primary' : 'btn-secondary' %>" style="flex:1; text-align:center;"
+           href="<%= baseUrl %>?<%= restricted ? 'shift=' + shift + '&' : 'session=' + session + '&shift=' + shift + '&classSlug=' + classSlug + '&' %>mode=monthly&month=<%= month %>">মাসিক</a>
+      </div>
+
+      <% if (mode === 'daily') { %>
+        <form method="GET" action="<%= baseUrl %>" style="margin-top:12px;">
+          <% if (!restricted) { %>
+            <input type="hidden" name="session" value="<%= session %>" />
+            <input type="hidden" name="classSlug" value="<%= classSlug %>" />
+          <% } %>
+          <input type="hidden" name="shift" value="<%= shift %>" />
+          <input type="hidden" name="mode" value="daily" />
+          <label>তারিখ</label>
+          <input type="date" name="date" value="<%= date %>" onchange="this.form.submit()" />
+        </form>
+
+        <% if (!dailyRecord) { %>
+          <p class="empty" style="margin-top:14px;">এই তারিখে উপস্থিতি নেওয়া হয়নি।</p>
+        <% } else { %>
+          <% const counts = { present: 0, absent: 0, leave: 0 }; %>
+          <% students.forEach(s => { const st = dailyRecord.records[s.id]; if (st) counts[st]++; }) %>
+          <div class="stat-grid" style="grid-template-columns: repeat(3, 1fr); margin-top:14px;">
+            <div class="stat-card"><div class="num"><%= counts.present %></div><div class="label">উপস্থিত</div></div>
+            <div class="stat-card"><div class="num"><%= counts.absent %></div><div class="label">অনুপস্থিত</div></div>
+            <div class="stat-card"><div class="num"><%= counts.leave %></div><div class="label">ছুটি</div></div>
+          </div>
+          <table>
+            <thead><tr><th>রোল</th><th>নাম</th><th>অবস্থা</th></tr></thead>
+            <tbody>
+              <% students.forEach(s => { %>
+                <% const st = dailyRecord.records[s.id]; %>
+                <tr>
+                  <td><%= s.roll || '-' %></td>
+                  <td>
+                    <% if (st === 'absent') { %>
+                      <a href="/students?class=<%= classSlug %>" style="color:#b91c1c; text-decoration:underline;"><%= s.name %></a>
+                    <% } else { %>
+                      <%= s.name %>
+                    <% } %>
+                  </td>
+                  <td><%= st === 'present' ? '✅ উপস্থিত' : st === 'absent' ? '❌ অনুপস্থিত' : st === 'leave' ? '🟡 ছুটি' : '—' %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } %>
+      <% } else { %>
+        <form method="GET" action="<%= baseUrl %>" style="margin-top:12px;">
+          <% if (!restricted) { %>
+            <input type="hidden" name="session" value="<%= session %>" />
+            <input type="hidden" name="classSlug" value="<%= classSlug %>" />
+          <% } %>
+          <input type="hidden" name="shift" value="<%= shift %>" />
+          <input type="hidden" name="mode" value="monthly" />
+          <label>মাস</label>
+          <input type="month" name="month" value="<%= month %>" onchange="this.form.submit()" />
+        </form>
+
+        <% if (!monthly || monthly.dates.length === 0) { %>
+          <p class="empty" style="margin-top:14px;">এই মাসে কোনো উপস্থিতি রেকর্ড নেই।</p>
+        <% } else { %>
+          <p class="sub" style="margin-top:14px;">মোট উপস্থিতি নেওয়া হয়েছে: <%= monthly.dates.length %> দিন</p>
+          <table>
+            <thead><tr><th>রোল</th><th>নাম</th><th>উপস্থিত</th><th>অনুপস্থিত</th><th>ছুটি</th><th>%</th></tr></thead>
+            <tbody>
+              <% monthly.rows.forEach(r => { %>
+                <tr>
+                  <td><%= r.student.roll || '-' %></td>
+                  <td><%= r.student.name %></td>
+                  <td><%= r.present %></td>
+                  <td><%= r.absent %></td>
+                  <td><%= r.leave %></td>
+                  <td><%= r.percentage === null ? '—' : r.percentage + '%' %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } %>
+      <% } %>
+    <% } %>
+  </div>
+  <%- include('_script') %>
+
+    </div>
+  </div>
+</body>
+</html>

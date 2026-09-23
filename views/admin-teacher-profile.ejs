@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>শিক্ষকের প্রোফাইল — <%= account.name %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+<style>
+  .info-row { display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px solid #f0f0f0; font-size:14px; }
+  .info-row:last-child { border-bottom:none; }
+  .info-row .k { color:#888; flex-shrink:0; }
+  .info-row .v { text-align:right; font-weight:600; word-break:break-word; }
+</style>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/admin/teacher-accounts">⬅️ ফিরে যান</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <div class="brand-header">
+      <% if (sourceTeacher && sourceTeacher.photoDataUrl) { %>
+        <img class="brand-logo" src="<%= sourceTeacher.photoDataUrl %>" alt="<%= account.name %>" style="border-radius:50%; object-fit:cover;" />
+      <% } %>
+      <div>
+        <h1 style="margin:0;"><%= account.name %></h1>
+        <% if (sourceTeacher && sourceTeacher.designation) { %>
+          <p class="sub" style="margin:2px 0 0;"><%= sourceTeacher.designation %></p>
+        <% } %>
+      </div>
+    </div>
+    <p class="sub" style="margin-top:12px;">
+      এই তথ্যগুলো শিক্ষক নিজে তার প্যানেল থেকে দিয়েছেন — আপনি শুধু দেখতে পারবেন, এখান থেকে এডিট করা যাবে না।
+      কোনো তথ্য ভুল থাকলে সংশ্লিষ্ট শিক্ষককে নিজের প্যানেলে গিয়ে ঠিক করতে বলুন।
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>ব্যক্তিগত তথ্য</h2>
+    <% if (!profile || Object.keys(profile).filter(k => profile[k]).length === 0) { %>
+      <p class="empty">এই শিক্ষক এখনো নিজের প্রোফাইল তথ্য যোগ করেননি।</p>
+    <% } else { %>
+      <div class="info-row"><span class="k">পূর্ণাঙ্গ নাম</span><span class="v"><%= profile.fullName || '—' %></span></div>
+      <div class="info-row"><span class="k">মোবাইল নম্বর</span><span class="v"><%= profile.phone || '—' %></span></div>
+      <div class="info-row"><span class="k">ইমেইল</span><span class="v"><%= profile.email || '—' %></span></div>
+      <div class="info-row"><span class="k">ঠিকানা</span><span class="v"><%= profile.address || '—' %></span></div>
+      <div class="info-row"><span class="k">জন্ম তারিখ</span><span class="v"><%= profile.dob || '—' %></span></div>
+      <div class="info-row"><span class="k">রক্তের গ্রুপ</span><span class="v"><%= profile.bloodGroup || '—' %></span></div>
+      <div class="info-row"><span class="k">শিক্ষাগত যোগ্যতা</span><span class="v"><%= profile.education || '—' %></span></div>
+      <div class="info-row"><span class="k">যোগদানের তারিখ</span><span class="v"><%= profile.joiningDate || '—' %></span></div>
+      <div class="info-row"><span class="k">NID নম্বর</span><span class="v"><%= profile.nid || '—' %></span></div>
+      <div class="info-row"><span class="k">জন্ম নিবন্ধন নম্বর</span><span class="v"><%= profile.birthCertNo || '—' %></span></div>
+      <div class="info-row"><span class="k">জরুরি যোগাযোগ (নাম)</span><span class="v"><%= profile.emergencyName || '—' %></span></div>
+      <div class="info-row"><span class="k">জরুরি যোগাযোগ (মোবাইল)</span><span class="v"><%= profile.emergencyPhone || '—' %></span></div>
+    <% } %>
+  </div>
+
+    </div>
+  </div>
+</body>
+</html>

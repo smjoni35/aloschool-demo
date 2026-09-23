@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>পরীক্ষা এডিট — <%= exam.examName %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+    <a href="/exams/<%= exam.key %>">⬅ পরীক্ষা</a>
+  </div>
+
+  <div class="card">
+    <h1>পরীক্ষার তথ্য এডিট করুন</h1>
+    <p class="sub">বানান ভুল হলে এখান থেকে ঠিক করে দিন। ক্লাস পরিবর্তন করা যাবে না, কারণ ফলাফল ওই ক্লাসের শিক্ষার্থীদের সাথে যুক্ত।</p>
+
+    <form method="POST" action="/exams/<%= exam.key %>/edit">
+      <label>ক্লাস</label>
+      <input type="text" value="<%= exam.className %>" disabled />
+
+      <label>পরীক্ষার নাম</label>
+      <input type="text" name="examName" value="<%= exam.examName %>" required />
+
+      <label>সেশন</label>
+      <input type="text" name="session" value="<%= exam.session || '' %>" />
+
+      <label>স্কুলের নাম (এই পরীক্ষার জন্য)</label>
+      <input type="text" name="schoolName" value="<%= exam.schoolName || '' %>" />
+      <p style="font-size:12px; color:#999; margin:4px 0 0;">
+        সব পরীক্ষায় একই স্কুলের নাম বারবার লেখার দরকার নেই — <a href="/admin">সেটিংস পেজ থেকে</a> একবার সেট করলে নতুন পরীক্ষা তৈরি করার সময় এটা এমনিতেই বসে যাবে।
+        এখানে বদলালে শুধু এই একটা পরীক্ষাতেই প্রযোজ্য হবে।
+      </p>
+
+      <button type="submit" class="btn btn-primary btn-block">সংরক্ষণ করুন</button>
+    </form>
+  </div>
+  <%- include('_script') %>
+
+    </div>
+  </div>
+</body>
+</html>

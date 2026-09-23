@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>সেটিংস — স্কুল ম্যানেজমেন্ট সিস্টেম</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <details class="card acc">
+    <summary>🏫 স্কুলের নাম</summary>
+    <p class="sub">এখানে একবার স্কুলের নাম সেট করে দিন — নতুন প্রতিটি পরীক্ষায় ও প্রগ্রেস কার্ডে এই নামই বসবে, বারবার লিখতে হবে না বা ভুল বানানের ঝুঁকি থাকবে না।</p>
+    <form method="POST" action="/admin/school-name">
+      <label>স্কুলের নাম</label>
+      <input type="text" name="schoolName" value="<%= settings.schoolName || '' %>" placeholder="Alo Shikkha Academy School" required />
+      <button type="submit" class="btn btn-primary btn-block">সংরক্ষণ করুন</button>
+    </form>
+  </details>
+
+  <details class="card acc">
+    <summary>🖼 স্কুলের লোগো</summary>
+    <p class="sub">লোগো আপলোড করলে প্রতিটি প্রগ্রেস কার্ডের (PDF ও অনলাইন রেজাল্ট পেজ) বাম পাশে সেটি দেখাবে।</p>
+
+    <% if (settings.logoDataUrl) { %>
+      <img src="<%= settings.logoDataUrl %>" alt="বর্তমান লোগো" style="width:90px; height:90px; object-fit:contain; display:block; margin-bottom:14px; border:1px solid #e5e7eb; border-radius:8px; padding:6px;" />
+      <form method="POST" action="/admin/logo/remove" onsubmit="return appConfirm(this, 'লোগো মুছে ফেলতে চান?')" style="margin-bottom:16px;">
+        <button type="submit" class="btn btn-danger btn-block">লোগো মুছে ফেলুন</button>
+      </form>
+    <% } %>
+
+    <form method="POST" action="/admin/logo" id="logoForm">
+      <label>নতুন লোগো ছবি সিলেক্ট করুন</label>
+      <input type="file" id="logoFile" accept="image/*" />
+      <input type="hidden" name="logoDataUrl" id="logoDataUrl" />
+      <button type="submit" class="btn btn-primary btn-block" id="logoBtn" disabled>লোগো সংরক্ষণ করুন</button>
+    </form>
+    <script>
+      const logoFile = document.getElementById('logoFile');
+      const logoHidden = document.getElementById('logoDataUrl');
+      const logoBtn = document.getElementById('logoBtn');
+      logoFile.addEventListener('change', function () {
+        const file = logoFile.files[0];
+        if (!file) { logoBtn.disabled = true; return; }
+        const reader = new FileReader();
+        reader.onload = function () {
+          logoHidden.value = reader.result;
+          logoBtn.disabled = false;
+        };
+        reader.readAsDataURL(file);
+      });
+    </script>
+  </details>
+
+  <details class="card acc" <% if (counterReset) { %>open data-force-open<% } %>>
+    <summary>🔢 ভর্তি আবেদন নম্বর রিসেট</summary>
+    <p class="sub">এ বছরের ভর্তি আবেদন নম্বর (যেমন <%= new Date().getFullYear() %>-0001) গণনা ০০০১ থেকে আবার শুরু করে দিন। টেস্ট আবেদন জমা দেওয়ার পর, আসল ভর্তি চালু করার আগে এটা ব্যবহার করুন — এতে টেস্ট আবেদনগুলো মুছে যায় না, শুধু পরের নতুন আবেদন থেকে নম্বর ০০০১ থেকে গোনা শুরু হবে।</p>
+    <% if (counterReset) { %>
+      <p style="color:#15803d; font-size:14px; margin:0 0 12px;">✅ এ বছরের আবেদন নম্বর গণনা রিসেট হয়ে গেছে।</p>
+    <% } %>
+    <form method="POST" action="/admin/admissions/reset-counter" onsubmit="return appConfirm(this, 'নিশ্চিত? এতে এ বছরের পরবর্তী নতুন আবেদন আবার ০০০১ নম্বর থেকে শুরু হবে।')">
+      <button type="submit" class="btn btn-secondary btn-block">এ বছরের কাউন্টার রিসেট করুন</button>
+    </form>
+  </details>
+
+  <details class="card acc" style="border:1px solid #fecaca;" <% if (typeof ledgerResetDone !== 'undefined' && ledgerResetDone !== false) { %>open data-force-open<% } %>>
+    <summary style="color:#b91c1c;">🗑️ সব ছাত্রের ফি লেজার রিসেট করুন (বিপজ্জনক)</summary>
+    <p class="sub">প্রতিটা ছাত্রের সব ফি চার্জ ও পেমেন্ট এন্ট্রি স্থায়ীভাবে মুছে যাবে — রিসিট নম্বর, পেমেন্ট হিস্ট্রি সব। শুধু টেস্ট/ডেমো ডেটা মোছার জন্য ব্যবহার করুন, আসল বিলিং শুরু হওয়ার আগে। <b>এটা ফেরানো যাবে না।</b></p>
+    <% if (typeof ledgerResetError !== 'undefined' && ledgerResetError) { %>
+      <p style="color:#b91c1c; font-size:14px; margin:0 0 12px;"><%= ledgerResetError %></p>
+    <% } %>
+    <% if (typeof ledgerResetDone !== 'undefined' && ledgerResetDone !== false) { %>
+      <p style="color:#15803d; font-size:14px; margin:0 0 12px;">✅ <%= ledgerResetDone %> জন ছাত্রের ফি লেজার রিসেট হয়ে গেছে।</p>
+    <% } %>
+    <form method="POST" action="/admin/fees/reset-all-ledgers" onsubmit="return appConfirm(this, 'একদম নিশ্চিত? সব ছাত্রের ফি হিস্ট্রি স্থায়ীভাবে মুছে যাবে, ফেরত আনা যাবে না।')">
+      <label>নিশ্চিত করতে নিচে হুবহু লিখুন: <b>সব মুছে দিন</b></label>
+      <input type="text" name="confirmPhrase" placeholder="সব মুছে দিন" required>
+      <button type="submit" class="btn btn-block" style="background:#dc2626; color:#fff; margin-top:10px;">সব ছাত্রের ফি লেজার মুছে ফেলুন</button>
+    </form>
+  </details>
+
+  <details class="card acc">
+    <summary>⬇ ডাটা ব্যাকআপ</summary>
+    <p class="sub">ক্লাস, শিক্ষার্থী, পরীক্ষা, নম্বর — সবকিছু একটা JSON ফাইলে ডাউনলোড করুন। মাঝেমধ্যে ডাউনলোড করে রাখলে সার্ভারের ডাটা হারিয়ে গেলেও (যেমন Render free tier redeploy) ফিরিয়ে আনা যাবে।</p>
+    <a href="/admin/backup" class="btn btn-primary btn-block">ব্যাকআপ (JSON) ডাউনলোড করুন</a>
+  </details>
+
+  <details class="card acc" <% if (restoreError || restoreSuccess) { %>open data-force-open<% } %>>
+    <summary>⬆ ডাটা রিস্টোর</summary>
+    <p class="sub">এই সিস্টেম থেকে আগে ডাউনলোড করা ব্যাকআপ JSON ফাইল আপলোড করে ডাটা ফিরিয়ে আনুন।</p>
+    <p style="color:#b91c1c; font-size:13px; margin:0 0 14px;">⚠ রিস্টোর করলে ফাইলে থাকা ক্লাস/পরীক্ষার বর্তমান ডাটা ওভাররাইট হয়ে যাবে। নিশ্চিত না হলে করবেন না।</p>
+
+    <% if (restoreError) { %>
+      <p style="color:#b91c1c; font-size:14px; margin:0 0 12px;"><%= restoreError %></p>
+    <% } %>
+    <% if (restoreSuccess) { %>
+      <p style="color:#15803d; font-size:14px; margin:0 0 12px;">✅ সফলভাবে রিস্টোর হয়েছে (<%= restoreSuccess %>টা এন্ট্রি)।</p>
+    <% } %>
+
+    <form method="POST" action="/admin/restore" id="restoreForm" onsubmit="return appConfirm(this, 'নিশ্চিত? এতে বর্তমান ডাটা ওভাররাইট হয়ে যাবে।')">
+      <label>ব্যাকআপ ফাইল সিলেক্ট করুন</label>
+      <input type="file" id="restoreFile" accept="application/json,.json" required />
+      <textarea name="backupJson" id="backupJson" style="display:none;"></textarea>
+      <button type="submit" class="btn btn-danger btn-block" id="restoreBtn" disabled>রিস্টোর করুন</button>
+    </form>
+    <script>
+      const fileInput = document.getElementById('restoreFile');
+      const hidden = document.getElementById('backupJson');
+      const btn = document.getElementById('restoreBtn');
+      fileInput.addEventListener('change', function () {
+        const file = fileInput.files[0];
+        if (!file) { btn.disabled = true; return; }
+        const reader = new FileReader();
+        reader.onload = function () {
+          hidden.value = reader.result;
+          btn.disabled = false;
+        };
+        reader.readAsText(file);
+      });
+    </script>
+  </details>
+  <%- include('_script') %>
+
+    </div>
+  </div>
+</body>
+</html>

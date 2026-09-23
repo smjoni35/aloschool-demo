@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>শিক্ষার্থী উপস্থিতি — <%= settings.schoolName || 'স্কুল ম্যানেজমেন্ট সিস্টেম' %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<style>
+  .att-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+  .att-row:last-child { border-bottom: none; }
+  .att-row .who { flex: 1; min-width: 0; }
+  .att-row .who .roll { color: #888; font-size: 12px; }
+  .att-row .opts { display: flex; gap: 6px; flex-shrink: 0; }
+  .att-opt { display: inline-block; }
+  .att-opt input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .att-opt span {
+    display: inline-block; padding: 7px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    background: #f1f5f9; color: #666; border: 1px solid #e5e7eb;
+  }
+  .att-opt input:checked + span.present { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
+  .att-opt input:checked + span.absent { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+  .att-opt input:checked + span.leave { background: #fef9c3; color: #92400e; border-color: #fde68a; }
+</style>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="<%= backUrl %>">🏠 হোম</a>
+    <a href="<%= restricted ? '/teacher/logout' : '/logout' %>">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>🧑 শিক্ষার্থী উপস্থিতি</h1>
+    <p class="sub" style="margin-bottom:10px;">সেশন, শিফট, ক্লাস ও তারিখ অনুযায়ী উপস্থিতি নিন বা এডিট করুন।</p>
+
+    <% if (saved) { %>
+      <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px; margin-bottom:14px;">
+        <p style="color:#15803d; font-size:14px; margin:0;">✅ উপস্থিতি সেভ হয়েছে।</p>
+      </div>
+    <% } %>
+    <% if (error) { %>
+      <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:10px 12px; margin-bottom:14px;">
+        <p style="color:#b91c1c; font-size:14px; margin:0;">⚠️ <%= error %></p>
+      </div>
+    <% } %>
+    <% if (isHoliday) { %>
+      <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:10px 12px; margin-bottom:14px;">
+        <p style="color:#c2410c; font-size:14px; margin:0;">🗓️ এই তারিখটি সাপ্তাহিক ছুটি (শুক্র/শনিবার) — সাধারণত এদিন উপস্থিতি নেওয়ার প্রয়োজন নেই।</p>
+      </div>
+    <% } %>
+
+    <% if (!restricted) { %>
+      <form method="GET" action="/admin/attendance/student">
+        <div class="row">
+          <div>
+            <label>সেশন</label>
+            <select name="session" onchange="this.form.submit()">
+              <% sessions.forEach(s => { %>
+                <option value="<%= s %>" <%= s === session ? 'selected' : '' %>><%= s %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div>
+            <label>শিফট</label>
+            <select name="shift" onchange="this.form.submit()">
+              <option value="">— বেছে নিন —</option>
+              <option value="morning" <%= shift === 'morning' ? 'selected' : '' %>>মর্নিং</option>
+              <option value="day" <%= shift === 'day' ? 'selected' : '' %>>ডে</option>
+            </select>
+          </div>
+        </div>
+        <% if (shift) { %>
+          <label>ক্লাস</label>
+          <select name="classSlug" onchange="this.form.submit()">
+            <option value="">— বেছে নিন —</option>
+            <% classesInShift.forEach(c => { %>
+              <option value="<%= c.slug %>" <%= c.slug === classSlug ? 'selected' : '' %>><%= c.name %></option>
+            <% }) %>
+          </select>
+          <% if (classesInShift.length === 0) { %>
+            <p class="sub" style="color:#b91c1c;">এই শিফটে কোনো ক্লাস বসানো নেই — <a href="/admin/attendance/setup?session=<%= session %>">সেটআপ থেকে বসান</a>।</p>
+          <% } %>
+        <% } %>
+        <% if (classSlug) { %>
+          <label>তারিখ</label>
+          <input type="date" name="date" value="<%= date %>" onchange="this.form.submit()" />
+        <% } %>
+      </form>
+    <% } else { %>
+      <p class="sub" style="margin:0 0 4px;"><span class="pill"><%= SHIFT_LABELS[shift] %></span> — <strong><%= cls ? cls.name : '' %></strong></p>
+      <form method="GET" action="/teacher/attendance/mark">
+        <input type="hidden" name="shift" value="<%= shift %>" />
+        <label>তারিখ</label>
+        <input type="date" name="date" value="<%= date %>" onchange="this.form.submit()" />
+      </form>
+    <% } %>
+
+    <% if (cls && classSlug) { %>
+      <% if (students.length === 0) { %>
+        <p class="empty" style="margin-top:14px;">এই ক্লাসে কোনো শিক্ষার্থী নেই।</p>
+      <% } else { %>
+        <form method="POST" action="<%= saveUrl %>" id="attForm" style="margin-top:16px;">
+          <input type="hidden" name="session" value="<%= session %>" />
+          <input type="hidden" name="shift" value="<%= shift %>" />
+          <input type="hidden" name="classSlug" value="<%= classSlug %>" />
+          <input type="hidden" name="className" value="<%= cls.name %>" />
+          <input type="hidden" name="date" value="<%= date %>" />
+
+          <button type="button" class="btn btn-secondary btn-block" onclick="markAllPresent()">✅ সবাইকে উপস্থিত দিন (Mark All Present)</button>
+
+          <div style="margin-top:12px;">
+            <% students.forEach(s => { %>
+              <% const cur = existing && existing.records ? existing.records[s.id] : ''; %>
+              <div class="att-row">
+                <div class="who">
+                  <div><%= s.name %></div>
+                  <% if (s.roll) { %><div class="roll">রোল: <%= s.roll %></div><% } %>
+                </div>
+                <div class="opts">
+                  <label class="att-opt">
+                    <input type="radio" name="status_<%= s.id %>" value="present" <%= cur === 'present' ? 'checked' : '' %> />
+                    <span class="present">উপস্থিত</span>
+                  </label>
+                  <label class="att-opt">
+                    <input type="radio" name="status_<%= s.id %>" value="absent" <%= cur === 'absent' ? 'checked' : '' %> />
+                    <span class="absent">অনুপস্থিত</span>
+                  </label>
+                  <label class="att-opt">
+                    <input type="radio" name="status_<%= s.id %>" value="leave" <%= cur === 'leave' ? 'checked' : '' %> />
+                    <span class="leave">ছুটি</span>
+                  </label>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">💾 উপস্থিতি সেভ করুন</button>
+        </form>
+
+        <% if (!restricted) { %>
+          <a href="/admin/attendance/reports/student?session=<%= session %>&shift=<%= shift %>&classSlug=<%= classSlug %>" class="btn btn-secondary btn-block" style="margin-top:10px;">📊 এই ক্লাসের রিপোর্ট দেখুন</a>
+        <% } else { %>
+          <a href="/teacher/attendance/report?shift=<%= shift %>" class="btn btn-secondary btn-block" style="margin-top:10px;">📊 এই ক্লাসের রিপোর্ট দেখুন</a>
+        <% } %>
+
+        <script>
+          function markAllPresent() {
+            document.querySelectorAll('#attForm input[type="radio"][value="present"]').forEach(function (el) { el.checked = true; });
+          }
+        </script>
+      <% } %>
+    <% } %>
+  </div>
+  <%- include('_script') %>
+
+    </div>
+  </div>
+</body>
+</html>

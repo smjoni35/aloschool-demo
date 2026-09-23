@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>রেজাল্ট অনুসন্ধান<% if (data) { %> — <%= data.student.name %><% } %></title>
+<meta name="description" content="রোল ও রেজিস্ট্রেশন নম্বর দিয়ে পরীক্ষার ফলাফল দেখুন" />
+<link rel="icon" type="image/png" href="/icon-192.png" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+<%- include('_motion') %>
+<%- include('_public-style') %>
+<style>
+  body { padding: 0; }
+  .page-header {
+    background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+    padding: 32px 18px 40px; text-align: center; border-radius: 0 0 28px 28px; margin-bottom: 0;
+  }
+  .page-header h1 { color: #fff; font-size: 22px; margin: 0 0 6px; }
+  .page-header p { color: rgba(255,255,255,0.88); font-size: 13.5px; margin: 0; }
+  .page-content { max-width: 900px; margin: 0 auto; padding: 20px 16px 0; }
+  @media (min-width: 900px) {
+    body.public-home:not(.page-dashboard) { padding: 0; }
+    body.public-home .page-content .card { max-width: none; }
+    .page-header { padding: 48px 24px 56px; }
+    .page-header h1 { font-size: 30px; }
+    .page-header p { font-size: 15px; }
+  }
+  /* ---- search card (reuse default .card look) ---- */
+  .search-card h1 { display: flex; align-items: center; gap: 8px; }
+
+  /* ---- result card ---- */
+  .result-card {
+    max-width: 720px;
+    margin: 0 auto 16px;
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(30, 64, 175, 0.12);
+  }
+  .result-banner {
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 55%, #4f8dff 100%);
+    color: #fff;
+    text-align: center;
+    padding: 26px 20px 22px;
+    position: relative;
+  }
+  .result-banner::after {
+    content: "";
+    position: absolute; left: 0; right: 0; bottom: -1px;
+    height: 14px;
+    background: #fff;
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  }
+  .result-banner .logo {
+    display: block; margin: 0 auto 10px;
+    width: 56px; height: 56px; object-fit: contain;
+    background: #fff; border-radius: 8px; padding: 4px;
+  }
+  .result-banner .school { font-size: 21px; font-weight: 700; letter-spacing: 0.2px; }
+  .result-banner .title {
+    display: inline-block; margin-top: 8px;
+    background: rgba(255,255,255,0.18);
+    padding: 4px 14px; border-radius: 999px;
+    font-size: 12.5px; font-weight: 600; letter-spacing: 0.3px;
+  }
+  .result-banner .meta { font-size: 13px; color: #dce8ff; margin-top: 10px; }
+  .result-body { padding: 22px 20px 24px; }
+
+  /* ---- verification badge ---- */
+  .verify-wrap { position: relative; text-align: center; height: 0; }
+  .verify-badge {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    top: -18px;
+    background: #ffffff;
+    border: 1px solid #d7f2e2;
+    border-radius: 999px;
+    padding: 7px 18px 7px 8px;
+    box-shadow: 0 8px 22px rgba(21, 128, 61, 0.16);
+  }
+  .verify-badge .check {
+    flex: 0 0 auto;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #34d399, #15803d);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+    box-shadow: 0 2px 6px rgba(21, 128, 61, 0.35);
+  }
+  .verify-badge .text { line-height: 1.25; text-align: left; }
+  .verify-badge .t1 { display: block; font-size: 13px; font-weight: 700; color: #15803d; }
+  .verify-badge .t2 { display: block; font-size: 10.5px; color: #6b7d8f; margin-top: 1px; }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 16px;
+    font-size: 14px;
+    margin-bottom: 18px;
+  }
+  .info-item {
+    background: #f6f9ff;
+    border: 1px solid #eaf0ff;
+    border-radius: 10px;
+    padding: 9px 12px;
+  }
+  .info-item .k { display: block; font-size: 11px; color: #7286a8; text-transform: uppercase; letter-spacing: 0.3px; }
+  .info-item .v { font-size: 15px; font-weight: 700; color: #14213d; margin-top: 1px; }
+
+  table.marks-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .marks-table thead th {
+    background: #1d4ed8; color: #fff;
+    padding: 10px 8px; font-size: 11.5px;
+    text-transform: uppercase; letter-spacing: 0.3px;
+    text-align: center; font-weight: 600;
+  }
+  .marks-table thead th:first-child { text-align: left; border-radius: 8px 0 0 0; }
+  .marks-table thead th:last-child { border-radius: 0 8px 0 0; }
+  .marks-table td { padding: 10px 8px; text-align: center; border-bottom: 1px solid #eef1f6; }
+  .marks-table td:first-child { text-align: left; font-weight: 600; color: #1a1a1a; }
+  .marks-table tbody tr:nth-child(even) { background: #fafcff; }
+  .marks-table tbody tr:last-child td { border-bottom: none; }
+
+  .grade-badge {
+    display: inline-block; min-width: 34px;
+    padding: 3px 8px; border-radius: 999px;
+    font-weight: 700; font-size: 12.5px;
+  }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 20px 0 4px; }
+  .summary-box {
+    border-radius: 12px; padding: 14px 12px; text-align: center;
+    border: 1px solid rgba(0,0,0,0.04);
+  }
+  .summary-box .icon { font-size: 18px; }
+  .summary-box .label { font-size: 11px; color: #667; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 2px; }
+  .summary-box .value { font-size: 20px; font-weight: 800; margin-top: 3px; }
+  .summary-box.total { background: #eef4ff; }
+  .summary-box.total .value { color: #1d4ed8; }
+  .summary-box.pct { background: #f2ecff; }
+  .summary-box.pct .value { color: #7c3aed; }
+  .summary-box.grade { background: #eafff2; }
+  .summary-box.grade .value { color: #15803d; }
+  .summary-box.position { background: #fff6e8; }
+  .summary-box.position .value { color: #b45309; }
+  .summary-box .value .of { font-size: 12px; font-weight: 500; color: #999; }
+
+  .partial-note {
+    margin-top: 14px; font-size: 13px; color: #b91c1c;
+    background: #fef2f2; border: 1px solid #fecaca;
+    padding: 8px 12px; border-radius: 8px;
+  }
+
+  .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .btn-row .btn { flex: 1 1 140px; }
+
+  @media (max-width: 420px) {
+    .info-grid, .summary-grid { grid-template-columns: 1fr 1fr; }
+    .result-banner .school { font-size: 18px; }
+    .result-banner .logo { width: 44px; height: 44px; }
+  }
+
+  /* ---- print: compact everything so a normal-length card reliably
+     fits on one A4 page instead of spilling a mostly-blank second page ---- */
+  @media print {
+    .no-print, .site-nav, .site-footer, .to-top, .page-header { display: none !important; }
+    .page-content { max-width: 100%; padding: 0; }
+    @page { size: A4; margin: 8mm; }
+    html, body { background: #fff; margin: 0; padding: 0; }
+    .result-card { box-shadow: none; max-width: 100%; margin: 0; border-radius: 0; page-break-inside: avoid; }
+
+    .result-banner { padding: 14px 16px 12px; }
+    .result-banner::after { display: none; }
+    .result-banner .logo { width: 40px; height: 40px; margin-bottom: 4px; }
+    .result-banner .school { font-size: 17px; }
+    .result-banner .title { margin-top: 4px; padding: 2px 10px; font-size: 10.5px; }
+    .result-banner .meta { font-size: 11px; margin-top: 6px; }
+
+    .verify-wrap { height: auto; margin: 8px 0 4px; }
+    .verify-badge { position: static; top: 0; padding: 4px 12px 4px 6px; box-shadow: none; }
+    .verify-badge .check { width: 20px; height: 20px; font-size: 11px; box-shadow: none; }
+    .verify-badge .t1 { font-size: 11px; }
+    .verify-badge .t2 { font-size: 9px; }
+
+    .result-body { padding: 8px 16px 10px; }
+    .info-grid { gap: 6px 10px; margin-bottom: 8px; }
+    .info-item { padding: 5px 8px; }
+    .info-item .k { font-size: 9px; }
+    .info-item .v { font-size: 12.5px; }
+
+    table.marks-table { font-size: 11.5px; }
+    .marks-table thead th { padding: 5px 6px; font-size: 10px; }
+    .marks-table td { padding: 5px 6px; }
+    .grade-badge { padding: 1px 6px; font-size: 10.5px; }
+
+    .summary-grid { gap: 8px; margin: 10px 0 2px; }
+    .summary-box { padding: 8px; }
+    .summary-box .icon { font-size: 14px; }
+    .summary-box .label { font-size: 9px; }
+    .summary-box .value { font-size: 15px; }
+
+    .partial-note { margin-top: 8px; padding: 5px 8px; font-size: 11px; }
+  }
+</style>
+</head>
+<body class="public-home">
+
+  <%- include('_public-nav', { activePage: 'result' }) %>
+
+  <div class="page-header no-print">
+    <h1>🔎 রেজাল্ট অনুসন্ধান</h1>
+    <p>লগইন ছাড়াই আপনার পরীক্ষা নির্বাচন করে রোল অথবা রেজিস্ট্রেশন নম্বর দিয়ে রেজাল্ট দেখুন</p>
+  </div>
+
+  <div class="page-content">
+  <div class="card search-card no-print">
+    <% if (examlist.length === 0) { %>
+      <p class="empty">এখনো কোনো পরীক্ষা যোগ করা হয়নি।</p>
+    <% } else { %>
+      <form method="GET" action="/result">
+        <label>পরীক্ষা নির্বাচন করুন</label>
+        <select name="exam" required>
+          <option value="">— পরীক্ষা সিলেক্ট করুন —</option>
+          <% examlist.forEach(e => { %>
+            <option value="<%= e.key %>" <%= e.key === examKey ? 'selected' : '' %>><%= e.className %> — <%= e.examName %><%= e.session ? ' (' + e.session + ')' : '' %></option>
+          <% }) %>
+        </select>
+
+        <label>রোল অথবা রেজিস্ট্রেশন নম্বর</label>
+        <input type="text" name="code" value="<%= code %>" placeholder="যেমন: ০৫ অথবা 2025-1234" required />
+
+        <button type="submit" class="btn btn-primary btn-block">রেজাল্ট দেখুন</button>
+      </form>
+    <% } %>
+
+    <% if (error) { %>
+      <p style="color:#b91c1c; font-size:14px; margin-top:14px;">⚠ <%= error %></p>
+    <% } %>
+  </div>
+
+  <% if (data) {
+       const { exam, student, resultRow, subjectRows } = data;
+       const gradeColors = {
+         "A+": { bg: "#dcfce7", fg: "#15803d" },
+         "A":  { bg: "#dbeafe", fg: "#1d4ed8" },
+         "A-": { bg: "#cffafe", fg: "#0e7490" },
+         "B":  { bg: "#fef3c7", fg: "#b45309" },
+         "C":  { bg: "#ffedd5", fg: "#c2410c" },
+         "D":  { bg: "#fee2e2", fg: "#dc2626" },
+         "F":  { bg: "#fee2e2", fg: "#b91c1c" },
+         "—":  { bg: "#f1f5f9", fg: "#64748b" },
+       };
+       const gc = (g) => gradeColors[g] || gradeColors["—"];
+  %>
+  <div class="result-card" id="result-card">
+    <div class="result-banner">
+      <% if (settings && settings.logoDataUrl) { %><img class="logo" src="<%= settings.logoDataUrl %>" alt="লোগো" /><% } %>
+      <% if (exam.schoolName) { %><div class="school"><%= exam.schoolName %></div><% } %>
+      <div class="title">প্রগ্রেস রিপোর্ট কার্ড</div>
+      <div class="meta"><%= exam.className %> — <%= exam.examName %><%= exam.session ? ' (সেশন: ' + exam.session + ')' : '' %></div>
+    </div>
+
+    <div class="verify-wrap">
+      <div class="verify-badge">
+        <span class="check">✓</span>
+        <span class="text">
+          <span class="t1">ভেরিফায়েড ফলাফল</span>
+          <span class="t2">এই ফলাফলটি সফলভাবে যাচাই করা হয়েছে।</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="result-body">
+      <div class="info-grid">
+        <div class="info-item"><span class="k">নাম</span><span class="v"><%= student.name %></span></div>
+        <div class="info-item"><span class="k">রোল</span><span class="v"><%= student.roll %></span></div>
+        <% if (student.registration) { %>
+        <div class="info-item"><span class="k">রেজিস্ট্রেশন</span><span class="v"><%= student.registration %></span></div>
+        <% } %>
+        <% if (student.section) { %>
+        <div class="info-item"><span class="k">শিফট</span><span class="v"><%= student.section %></span></div>
+        <% } %>
+      </div>
+
+      <table class="marks-table">
+        <thead>
+          <tr><th>বিষয়</th><th>পূর্ণমান</th><th>প্রাপ্ত</th><th>সর্বোচ্চ</th><th>গ্রেড</th></tr>
+        </thead>
+        <tbody>
+          <% subjectRows.forEach(s => { const c = gc(s.grade); %>
+            <tr>
+              <td><%= s.name %></td>
+              <td><%= s.full %></td>
+              <td><%= s.obtained !== null ? s.obtained : '—' %></td>
+              <td><%= (s.highest !== undefined && s.highest !== null) ? s.highest : '—' %></td>
+              <td><span class="grade-badge" style="background:<%= c.bg %>; color:<%= c.fg %>;"><%= s.grade %></span></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+
+      <% const oc = gc(resultRow.overall.grade); %>
+      <div class="summary-grid">
+        <div class="summary-box total">
+          <div class="icon">📊</div>
+          <div class="label">মোট নম্বর</div>
+          <div class="value"><%= resultRow.totalObtained %>/<%= resultRow.totalFull %></div>
+        </div>
+        <div class="summary-box pct">
+          <div class="icon">📈</div>
+          <div class="label">শতকরা হার</div>
+          <div class="value"><%= resultRow.pct.toFixed(1) %>%</div>
+        </div>
+        <div class="summary-box grade" style="background:<%= oc.bg %>;">
+          <div class="icon">🏅</div>
+          <div class="label">গ্রেড / জিপিএ</div>
+          <div class="value" style="color:<%= oc.fg %>;"><%= resultRow.overall.grade %><% if (resultRow.allEntered) { %> (<%= resultRow.avgGP.toFixed(2) %>)<% } %></div>
+        </div>
+        <div class="summary-box position">
+          <div class="icon">🏆</div>
+          <div class="label">অবস্থান</div>
+          <div class="value"><%= resultRow.position ? resultRow.position : '—' %><% if (resultRow.totalRanked) { %> <span class="of">/ <%= resultRow.totalRanked %></span><% } %></div>
+        </div>
+      </div>
+
+      <% if (!resultRow.allEntered) { %>
+        <p class="partial-note">⚠ কিছু বিষয়ে এখনো নম্বর দেওয়া হয়নি — ফলাফল আংশিক।</p>
+      <% } %>
+
+      <div class="btn-row no-print">
+        <a class="btn btn-primary" href="/result/pdf?exam=<%= exam.key %>&code=<%= encodeURIComponent(code) %>">⬇ PDF ডাউনলোড</a>
+        <button type="button" class="btn btn-secondary" onclick="window.print()">🖨 প্রিন্ট করুন</button>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <%- include('_public-footer') %>
+
+  </div>
+
+<button type="button" class="to-top" id="toTop" aria-label="উপরে যান" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+<script>
+  var toTop = document.getElementById('toTop');
+  if (toTop) {
+    var toggleTop = function () { toTop.classList.toggle('show', window.scrollY > 500); };
+    window.addEventListener('scroll', toggleTop, { passive: true });
+    toggleTop();
+  }
+</script>
+<%- include('_floating-contact') %>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>আমার বেতন — <%= teacher.name %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+<style>
+  .fee-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+  .fee-row:last-child { border-bottom: none; }
+  .fee-amt-charge { color: #b91c1c; font-weight: 600; }
+  .fee-amt-payment { color: #15803d; font-weight: 600; }
+  .fee-meta { font-size: 12px; color: #999; }
+</style>
+</head>
+<body>
+  <div class="nav">
+    <a href="/teacher/panel">🏠 হোম</a>
+    <a href="/teacher/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1><%= teacher.name %> <% if (teacher.designation) { %><span class="pill"><%= teacher.designation %></span><% } %></h1>
+    <p class="sub" style="margin:2px 0 12px;">
+      নির্ধারিত মাসিক বেতন: ৳ <%= teacher.monthlySalary || 0 %>
+      <% if (teacher.coachingMonthlySalary) { %> · কোচিং বেতন: ৳ <%= teacher.coachingMonthlySalary %><% } %>
+    </p>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="num">৳ <%= balance.charged %></div>
+        <div class="label">মোট বেতন ধার্য (নিয়মিত + কোচিং + অন্যান্য)</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">৳ <%= balance.paid %></div>
+        <div class="label">মোট উত্তোলন (নিয়মিত + অগ্রিম)</div>
+      </div>
+      <div class="stat-card" style="grid-column: span 2;">
+        <div class="num" style="color: <%= balance.due > 0 ? '#b91c1c' : (balance.due < 0 ? '#2563eb' : '#15803d') %>;">
+          ৳ <%= Math.abs(balance.due) %>
+        </div>
+        <div class="label">
+          <% if (balance.due > 0) { %>বকেয়া পাওনা (এখনো দেওয়া হয়নি)<% } else if (balance.due < 0) { %>অগ্রিম নেওয়া আছে<% } else { %>হিসাব সমান — কোনো বকেয়া নেই<% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>হিস্টোরি</h2>
+    <p class="sub" style="margin:0 0 10px;">নিয়মিত বেতন, অগ্রিম, কোচিং বেতন ও অতিরিক্ত পাওনা — সবকিছু এখানে তারিখ অনুযায়ী দেখা যাবে।</p>
+    <% if (ledger.length === 0) { %>
+      <p class="empty">এখনো কোনো এন্ট্রি নেই।</p>
+    <% } else { %>
+      <% ledger.forEach(e => { %>
+        <div class="fee-row">
+          <div>
+            <div><%= e.label %></div>
+            <div class="fee-meta">
+              <%= e.date %>
+              <% if (e.note) { %> · <%= e.note %><% } %>
+            </div>
+          </div>
+          <span class="<%= e.kind === 'payment' ? 'fee-amt-payment' : 'fee-amt-charge' %>">
+            <%= e.kind === 'payment' ? '−' : '+' %>৳ <%= e.amount %>
+          </span>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+</body>
+</html>

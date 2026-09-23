@@ -1,0 +1,41 @@
+<%# Shared footer for every public page. %>
+<div class="site-footer">
+  <div class="footer-grid">
+    <div class="f-col">
+      <div class="f-brand">
+        <% if (typeof settings !== 'undefined' && settings.logoDataUrl) { %><img src="<%= settings.logoDataUrl %>" alt="লোগো" /><% } %>
+        <h3><%= (typeof settings !== 'undefined' && settings.schoolName) || 'স্কুল' %></h3>
+      </div>
+      <div class="f-about"><%= (website.tagline) || 'শিক্ষার্থীদের সুন্দর ভবিষ্যৎ গড়ার লক্ষ্যে নিরলস প্রচেষ্টা।' %></div>
+    </div>
+    <div class="f-col">
+      <h3>কুইক লিংক</h3>
+      <ul class="f-links">
+        <li><a href="/about">আমাদের সম্পর্কে</a></li>
+        <li><a href="/#notices">নোটিশ</a></li>
+        <li><a href="/routine">ক্লাস রুটিন</a></li>
+        <li><a href="/#admission">ভর্তি তথ্য</a></li>
+        <li><a href="/result">ফলাফল দেখুন</a></li>
+        <li><a href="/login">স্টাফ লগইন</a></li>
+      </ul>
+    </div>
+    <% if (website.contactAddress || website.contactPhone || website.contactEmail) { %>
+    <div class="f-col">
+      <h3>যোগাযোগ</h3>
+      <% if (website.contactAddress) { %><div class="f-contact-row">📍 <span><%= website.contactAddress %></span></div><% } %>
+      <% if (website.contactPhone) { %><div class="f-contact-row">📞 <a href="tel:<%= website.contactPhone %>"><%= website.contactPhone %></a></div><% } %>
+      <% if (website.contactEmail) { %><div class="f-contact-row">✉️ <a href="mailto:<%= website.contactEmail %>"><%= website.contactEmail %></a></div><% } %>
+      <% if (website.facebookUrl || website.youtubeUrl) { %>
+      <div class="f-social">
+        <% if (website.facebookUrl) { %><a href="<%= website.facebookUrl %>" target="_blank">📘 Facebook</a><% } %>
+        <% if (website.youtubeUrl) { %><a href="<%= website.youtubeUrl %>" target="_blank">▶️ YouTube</a><% } %>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+  </div>
+  <div class="f-bottom">
+    <div class="footer-copy">© <%= currentYear %> <%= (typeof settings !== 'undefined' && settings.schoolName) || '' %></div>
+    <div class="footer-dev">Designed &amp; Developed by <a href="https://www.facebook.com/smjoni35" target="_blank" rel="noopener">M. Jony Sarkar</a></div>
+  </div>
+</div>

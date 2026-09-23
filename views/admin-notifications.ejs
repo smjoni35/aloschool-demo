@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>নোটিফিকেশন</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+      <h1 style="margin:0;">🔔 নোটিফিকেশন</h1>
+      <% if (items.length > 0) { %>
+        <form method="POST" action="/admin/notifications/clear" onsubmit="return confirm('সব নোটিফিকেশন মুছে ফেলতে চান?');">
+          <button type="submit" class="btn btn-secondary" style="font-size:12px; padding:6px 10px;">🗑️ সব মুছুন</button>
+        </form>
+      <% } %>
+    </div>
+    <p class="sub" style="margin:4px 0 0;">৩০ দিনের বেশি পুরনো নোটিফিকেশন এমনিতেই স্বয়ংক্রিয়ভাবে মুছে যায় — নিচের ক্রস (✕) চেপে চাইলে আগেই মুছে ফেলতে পারবেন।</p>
+    <% if (items.length === 0) { %>
+      <p class="empty">এখনো কোনো কার্যক্রম রেকর্ড হয়নি।</p>
+    <% } else { %>
+      <% items.forEach(function (a) { %>
+        <div class="activity-row" style="align-items:center;">
+          <% if (a.link) { %>
+          <a href="<%= a.link %>" style="display:flex; align-items:flex-start; gap:10px; flex:1; text-decoration:none; color:inherit; min-width:0;">
+            <span class="ai-icon" style="background:<%= a.style.bg %>; color:<%= a.style.color %>;"><%= a.style.icon %></span>
+            <div>
+              <div class="ai-text"><%= a.message %></div>
+              <div class="ai-time"><%= a.timeAgo %></div>
+            </div>
+          </a>
+          <% } else { %>
+          <div style="display:flex; align-items:flex-start; gap:10px; flex:1; min-width:0;">
+            <span class="ai-icon" style="background:<%= a.style.bg %>; color:<%= a.style.color %>;"><%= a.style.icon %></span>
+            <div>
+              <div class="ai-text"><%= a.message %></div>
+              <div class="ai-time"><%= a.timeAgo %></div>
+            </div>
+          </div>
+          <% } %>
+          <form method="POST" action="/admin/notifications/<%= a.id %>/delete" onsubmit="return confirm('এই নোটিফিকেশনটা মুছে ফেলতে চান?');">
+            <button type="submit" style="background:none; border:none; color:#bbb; font-size:16px; cursor:pointer; padding:4px 6px;">✕</button>
+          </form>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+
+    </div>
+  </div>
+</body>
+</html>

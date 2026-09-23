@@ -1,0 +1,73 @@
+<%# Shared, lightweight motion helpers for the public-facing pages:
+    smooth page-to-page crossfade, button loading spinner (stops double
+    submits), input focus glow and a small "shake" on invalid fields.
+    Everything respects "reduce motion" and degrades gracefully. %>
+<style>
+  /* Smooth crossfade between pages (Chrome/Edge/Android; other browsers
+     simply navigate as usual). */
+  @media (prefers-reduced-motion: no-preference) {
+    @view-transition { navigation: auto; }
+    ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.22s; }
+  }
+
+  /* Button spinner while a form is being sent */
+  .btn-loading { position: relative; color: transparent !important; pointer-events: none; }
+  .btn-loading::after {
+    content: ""; position: absolute; left: 50%; top: 50%;
+    width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%;
+    border: 2.5px solid rgba(255,255,255,0.4); border-top-color: #fff;
+    animation: btnSpin 0.7s linear infinite;
+  }
+  .btn-secondary.btn-loading::after { border-color: rgba(0,0,0,0.15); border-top-color: #333; }
+  @keyframes btnSpin { to { transform: rotate(360deg); } }
+
+  /* Focus glow + shake on a missing/invalid field */
+  input, select, textarea { transition: border-color 0.15s, box-shadow 0.15s; }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+  }
+  @keyframes fieldShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); } 40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); } 80% { transform: translateX(4px); }
+  }
+  .field-shake { border-color: #ef4444 !important; }
+  @media (prefers-reduced-motion: no-preference) {
+    .field-shake { animation: fieldShake 0.4s ease; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn-loading::after { animation-duration: 1.6s; }
+  }
+</style>
+<script>
+  (function () {
+    // Show a spinner on the submit button and ignore a second tap while the
+    // first request is still in flight.
+    document.addEventListener('submit', function (e) {
+      var form = e.target;
+      if (!form || e.defaultPrevented || form.hasAttribute('data-no-loading') || form.target === '_blank') return;
+      var btn = e.submitter || form.querySelector('button[type="submit"]');
+      if (!btn) return;
+      if (form.__sending) { e.preventDefault(); return; }
+      form.__sending = true;
+      btn.classList.add('btn-loading');
+      btn.setAttribute('aria-busy', 'true');
+      function reset() {
+        form.__sending = false;
+        btn.classList.remove('btn-loading');
+        btn.removeAttribute('aria-busy');
+      }
+      setTimeout(reset, 20000); // safety net if the response never navigates
+      window.addEventListener('pageshow', function (ev) { if (ev.persisted) reset(); });
+    });
+
+    // Small shake on a field that fails the browser's validation
+    document.addEventListener('invalid', function (e) {
+      var el = e.target;
+      el.classList.remove('field-shake');
+      void el.offsetWidth;
+      el.classList.add('field-shake');
+      setTimeout(function () { el.classList.remove('field-shake'); }, 500);
+    }, true);
+  })();
+</script>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>শিক্ষক উপস্থিতি — <%= settings.schoolName || 'স্কুল ম্যানেজমেন্ট সিস্টেম' %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<style>
+  .t-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; flex-wrap: wrap; }
+  .t-row:last-child { border-bottom: none; }
+  .t-row .who { flex: 1; min-width: 140px; }
+  .t-row .who .meta { color: #888; font-size: 12px; }
+  .t-row .opts { display: flex; gap: 6px; }
+  .t-row select { width: auto; }
+</style>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="app-shell">
+    <%- include('_sidebar') %>
+    <div class="main-content">
+
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1>🏫 শিক্ষক উপস্থিতি</h1>
+    <p class="sub">শিক্ষকরা নিজেরা চেক-ইন করলে এখানে সময়সহ দেখা যাবে। প্রয়োজনে এখান থেকে ম্যানুয়ালি অবস্থা বদলানো যাবে (যেমন ছুটি/অনুপস্থিত)।</p>
+
+    <% if (saved) { %>
+      <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px; margin-bottom:14px;">
+        <p style="color:#15803d; font-size:14px; margin:0;">✅ সেভ হয়েছে।</p>
+      </div>
+    <% } %>
+    <% if (isHoliday) { %>
+      <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:10px 12px; margin-bottom:14px;">
+        <p style="color:#c2410c; font-size:14px; margin:0;">🗓️ এই তারিখটি সাপ্তাহিক ছুটি (শুক্র/শনিবার) — সাধারণত এদিন উপস্থিতি নেওয়ার প্রয়োজন নেই।</p>
+      </div>
+    <% } %>
+
+    <form method="GET" action="/admin/attendance/teacher">
+      <input type="hidden" name="session" value="<%= session %>" />
+      <label>তারিখ</label>
+      <input type="date" name="date" value="<%= date %>" onchange="this.form.submit()" />
+    </form>
+
+    <% if (teacherAccounts.length === 0) { %>
+      <p class="empty">কোনো শিক্ষক লগইন অ্যাকাউন্ট নেই।</p>
+    <% } else { %>
+      <form method="POST" action="/admin/attendance/teacher/save" style="margin-top:14px;">
+        <input type="hidden" name="session" value="<%= session %>" />
+        <input type="hidden" name="date" value="<%= date %>" />
+        <% teacherAccounts.forEach(t => { %>
+          <% const entry = map[t.id]; %>
+          <div class="t-row">
+            <div class="who">
+              <div><%= t.name %></div>
+              <div class="meta">
+                <% if (entry && entry.checkInAt) { %>
+                  🕒 ইন: <%= new Date(entry.checkInAt).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dhaka' }) %>
+                  <% if (entry.checkOutAt) { %>
+                    &nbsp;|&nbsp;🚪 আউট: <%= new Date(entry.checkOutAt).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dhaka' }) %>
+                  <% } else { %>
+                    &nbsp;|&nbsp;আউট হয়নি
+                  <% } %>
+                  (<%= entry.markedBy === 'self' ? 'নিজে' : 'এডমিন' %>)
+                <% } else { %>
+                  চেক-ইন করেননি
+                <% } %>
+              </div>
+            </div>
+            <select name="status_<%= t.id %>">
+              <option value="">— অবস্থা —</option>
+              <option value="present" <%= entry && entry.status === 'present' ? 'selected' : '' %>>উপস্থিত</option>
+              <option value="absent" <%= entry && entry.status === 'absent' ? 'selected' : '' %>>অনুপস্থিত</option>
+              <option value="leave" <%= entry && entry.status === 'leave' ? 'selected' : '' %>>ছুটি</option>
+            </select>
+          </div>
+        <% }) %>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top:14px;">💾 সেভ করুন</button>
+      </form>
+    <% } %>
+
+    <a href="/admin/attendance/reports/teacher?session=<%= session %>" class="btn btn-secondary btn-block" style="margin-top:10px;">📈 শিক্ষক উপস্থিতি রিপোর্ট</a>
+  </div>
+  <%- include('_script') %>
+
+    </div>
+  </div>
+</body>
+</html>

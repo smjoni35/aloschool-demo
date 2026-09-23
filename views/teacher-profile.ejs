@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>আমার প্রোফাইল — <%= teacher.name %></title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+</head>
+<body>
+  <div class="nav">
+    <a href="/teacher/panel">🏠 হোম</a>
+    <a href="/teacher/salary">💰 আমার বেতন</a>
+    <a href="/teacher/logout">🚪 লগআউট</a>
+  </div>
+
+  <div class="card">
+    <h1><%= teacher.name %></h1>
+    <p class="sub" style="margin:2px 0 0;">
+      এই তথ্যগুলো আপনার নিজের প্যানেলেই দেখা যাবে এবং প্রয়োজনে আপনি নিজে ঠিক করতে পারবেন।
+      এডমিন শুধু দেখতে পারবেন, এখান থেকে বদলাতে পারবেন না।
+    </p>
+    <% if (saved) { %>
+      <p style="background:#f0fdf4; color:#15803d; padding:10px; border-radius:8px; font-size:14px; margin:14px 0 0;">✅ সংরক্ষণ করা হয়েছে।</p>
+    <% } %>
+  </div>
+
+  <div class="card">
+    <h2>ব্যক্তিগত তথ্য</h2>
+    <form method="POST" action="/teacher/profile">
+      <label>পূর্ণাঙ্গ নাম</label>
+      <input type="text" name="fullName" value="<%= profile.fullName || '' %>" />
+
+      <label>মোবাইল নম্বর</label>
+      <input type="text" name="phone" value="<%= profile.phone || '' %>" />
+
+      <label>ইমেইল</label>
+      <input type="email" name="email" value="<%= profile.email || '' %>" />
+
+      <label>ঠিকানা</label>
+      <input type="text" name="address" value="<%= profile.address || '' %>" />
+
+      <div class="row">
+        <div>
+          <label>জন্ম তারিখ</label>
+          <input type="date" name="dob" value="<%= profile.dob || '' %>" />
+        </div>
+        <div>
+          <label>রক্তের গ্রুপ</label>
+          <select name="bloodGroup">
+            <option value="" <%= !profile.bloodGroup ? 'selected' : '' %>>নির্বাচন করুন</option>
+            <% ['A+','A-','B+','B-','AB+','AB-','O+','O-'].forEach(bg => { %>
+              <option value="<%= bg %>" <%= profile.bloodGroup === bg ? 'selected' : '' %>><%= bg %></option>
+            <% }) %>
+          </select>
+        </div>
+      </div>
+
+      <label>শিক্ষাগত যোগ্যতা</label>
+      <input type="text" name="education" value="<%= profile.education || '' %>" />
+
+      <label>যোগদানের তারিখ</label>
+      <input type="date" name="joiningDate" value="<%= profile.joiningDate || '' %>" />
+
+      <label>NID নম্বর</label>
+      <input type="text" name="nid" value="<%= profile.nid || '' %>" />
+
+      <label>জন্ম নিবন্ধন নম্বর</label>
+      <input type="text" name="birthCertNo" value="<%= profile.birthCertNo || '' %>" />
+
+      <label>জরুরি যোগাযোগ (নাম)</label>
+      <input type="text" name="emergencyName" value="<%= profile.emergencyName || '' %>" />
+
+      <label>জরুরি যোগাযোগ (মোবাইল)</label>
+      <input type="text" name="emergencyPhone" value="<%= profile.emergencyPhone || '' %>" />
+
+      <button type="submit" class="btn btn-primary btn-block" style="margin-top:14px;">✅ সংরক্ষণ করুন</button>
+    </form>
+  </div>
+</body>
+</html>

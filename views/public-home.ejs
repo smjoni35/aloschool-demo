@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title><%= settings.schoolName || 'স্কুল' %></title>
+<% const seoDesc = (website.tagline || website.about || (settings.schoolName ? settings.schoolName + ' - দ্বীনি ও আধুনিক শিক্ষার সমন্বিত প্রতিষ্ঠান' : 'স্কুল ওয়েবসাইট')).toString().replace(/\s+/g, ' ').trim().slice(0, 160); %>
+<meta name="description" content="<%= seoDesc %>" />
+<link rel="icon" type="image/png" href="/icon-192.png" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="<%= settings.schoolName || 'স্কুল' %>" />
+<meta property="og:description" content="<%= seoDesc %>" />
+<% if (settings.logoDataUrl) { %><meta property="og:image" content="/icon-512.png" /><% } %>
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="<%= settings.schoolName || 'স্কুল' %>" />
+<meta name="twitter:description" content="<%= seoDesc %>" />
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+<%- include('_motion') %>
+<%- include('_public-style') %>
+</head>
+<body class="public-home">
+
+  <%- include('_public-nav', { activePage: 'home' }) %>
+
+  <% if (website.admissionBannerEnabled && website.admissionBannerText) { %>
+  <div class="admission-banner">
+    <span class="ico">📣</span>
+    <span class="txt"><%= website.admissionBannerText %></span>
+    <a class="banner-cta" href="/admission">আবেদন করুন →</a>
+  </div>
+  <% } %>
+
+  <% if (notices && notices.length > 0) {
+       const tickerChars = notices.reduce(function (n, x) { return n + String(x.title || '').length + 6; }, 0);
+       const tickerDur = Math.max(20, Math.round(tickerChars * 0.4));
+  %>
+  <div class="ticker" role="region" aria-label="সর্বশেষ নোটিশ" style="--ticker-dur: <%= tickerDur %>s;">
+    <div class="ticker-label">📢 নোটিশ</div>
+    <div class="ticker-viewport">
+      <div class="ticker-track">
+        <div class="ticker-group">
+          <% notices.forEach(function (n) { %>
+            <a class="ticker-item" href="#notices"><%= n.title %><% if (n.isNew) { %><span class="new-badge">নতুন</span><% } %></a>
+          <% }); %>
+        </div>
+        <div class="ticker-group" aria-hidden="true">
+          <% notices.forEach(function (n) { %>
+            <a class="ticker-item" href="#notices" tabindex="-1"><%= n.title %><% if (n.isNew) { %><span class="new-badge">নতুন</span><% } %></a>
+          <% }); %>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <div class="hero-banner" id="top">
+    <div class="hero-inner">
+      <div class="hero-main">
+        <% if (settings.logoDataUrl) { %>
+          <img src="<%= settings.logoDataUrl %>" alt="লোগো" />
+        <% } %>
+        <h1><%= settings.schoolName || 'স্কুলের নাম সেট করা হয়নি' %></h1>
+        <% if (website.tagline) { %>
+          <p class="tagline"><%= website.tagline %></p>
+        <% } %>
+        <div class="hero-actions">
+          <a href="/result" class="hero-btn primary">🎓 ফলাফল দেখুন</a>
+          <a href="/admission" class="hero-btn ghost">📝 ভর্তি আবেদন</a>
+        </div>
+      </div>
+      <%# Quick links: shown only on wide screens (the top menu covers phones) %>
+      <aside class="hero-side" aria-label="দ্রুত লিংক">
+        <a class="hero-tile" style="--i:0" href="#notices"><span class="ico">📢</span><span class="t">নোটিশ</span><span class="s">সর্বশেষ ঘোষণা ও বিজ্ঞপ্তি</span></a>
+        <a class="hero-tile" style="--i:1" href="/routine"><span class="ico">🗓️</span><span class="t">ক্লাস রুটিন</span><span class="s">ক্লাসভিত্তিক রুটিন দেখুন</span></a>
+        <a class="hero-tile" style="--i:2" href="#admission"><span class="ico">📝</span><span class="t">ভর্তি তথ্য</span><span class="s">নিয়ম ও অনলাইন আবেদন</span></a>
+        <% if (teachers.length > 0) { %>
+          <a class="hero-tile" style="--i:3" href="#teachers"><span class="ico">👩‍🏫</span><span class="t">শিক্ষক / স্টাফ</span><span class="s">আমাদের শিক্ষকমণ্ডলী</span></a>
+        <% } else { %>
+          <a class="hero-tile" style="--i:3" href="/result"><span class="ico">🎓</span><span class="t">ফলাফল</span><span class="s">রোল দিয়ে ফলাফল দেখুন</span></a>
+        <% } %>
+      </aside>
+    </div>
+  </div>
+
+  <div class="page-content">
+  <% if (totalStudents > 0 || teachers.length > 0 || website.foundedYear) { %>
+  <div class="card stats-card">
+    <h2>কেন আমাদের স্কুল</h2>
+    <div class="stats-grid">
+      <% if (totalStudents > 0) { %>
+        <div class="stat-box">
+          <div class="stat-number" data-count="<%= totalStudents %>"><%= totalStudents %></div>
+          <div class="stat-label">মোট শিক্ষার্থী</div>
+        </div>
+      <% } %>
+      <% if (teachers.length > 0) { %>
+        <div class="stat-box">
+          <div class="stat-number" data-count="<%= teachers.length %>"><%= teachers.length %></div>
+          <div class="stat-label">শিক্ষক/স্টাফ</div>
+        </div>
+      <% } %>
+      <% if (website.foundedYear) { %>
+        <div class="stat-box">
+          <div class="stat-number"><%= website.foundedYear %></div>
+          <div class="stat-label">প্রতিষ্ঠার সাল</div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+  <% } %>
+
+  <%
+    const homeMessageCards = (typeof messageCards !== 'undefined' ? messageCards : []);
+    const TEASER_LEN = 220;
+  %>
+  <% if (homeMessageCards.length > 0) { %>
+  <div class="card head-teaser-card">
+    <h2>বাণী</h2>
+    <div class="head-teaser-grid">
+      <% homeMessageCards.forEach(function (m) { %>
+        <div class="head-teaser">
+          <% if (m.photo) { %>
+            <img class="head-photo" src="<%= m.photo %>" alt="<%= m.name || m.fallbackAlt %>" />
+          <% } else { %>
+            <div class="head-avatar">👤</div>
+          <% } %>
+          <div class="head-teaser-body">
+            <% if (m.name) { %><div class="head-name"><%= m.name %></div><% } %>
+            <% if (m.desig) { %><div class="head-desig"><%= m.desig %></div><% } %>
+            <p class="head-teaser-text"><%= m.msg.length > TEASER_LEN ? m.msg.slice(0, TEASER_LEN).trim() + '…' : m.msg %></p>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+    <a href="/about" class="teaser-more">📖 সম্পূর্ণ বাণী ও আমাদের সম্পর্কে জানুন →</a>
+  </div>
+  <% } %>
+
+  <div class="split <%= website.about ? '' : 'no-about' %>">
+  <% if (website.about) { %>
+  <div class="card about-card">
+    <h2>আমাদের সম্পর্কে</h2>
+    <div class="about-text"><%= website.about %></div>
+  </div>
+  <% } %>
+
+  <div class="card notices-card" id="notices">
+    <h2>সাম্প্রতিক নোটিশ</h2>
+    <% if (notices.length === 0) { %>
+      <p class="empty">এই মুহূর্তে কোনো নোটিশ নেই।</p>
+    <% } else { %>
+      <% notices.forEach((n) => { %>
+        <div class="notice-item">
+          <div class="notice-title"><%= n.title %><% if (n.isNew) { %><span class="new-badge">নতুন</span><% } %></div>
+          <% if (n.date) { %><div class="notice-date"><%= n.date %></div><% } %>
+          <% if (n.body) { %><div class="notice-body"><%= n.body %></div><% } %>
+        </div>
+      <% }) %>
+      <% if (hasMoreNotices) { %>
+        <a href="/notices" style="display:block; text-align:center; margin-top:12px; font-size:14px;">সব নোটিশ দেখুন →</a>
+      <% } %>
+    <% } %>
+  </div>
+
+  <div class="card admission-card" id="admission">
+    <h2>ভর্তি তথ্য</h2>
+    <% if (website.admission) { %>
+      <div class="admission-text"><%= website.admission %></div>
+    <% } %>
+    <a href="/admission" class="btn btn-primary btn-block">📝 অনলাইনে ভর্তি আবেদন করুন</a>
+  </div>
+  </div><%# /.split %>
+
+
+  <% if (typeof feeInfo !== 'undefined' && feeInfo) { %>
+  <div class="card fees-card" id="fees">
+    <h2>ফি-এর তথ্য</h2>
+    <p class="fees-sub">শিক্ষাবর্ষ <%= feeInfo.sessionText %></p>
+    <div class="fees-scroll">
+      <table class="fees-table">
+        <thead>
+          <tr>
+            <th>শ্রেণি</th>
+            <% if (feeInfo.showAdmission) { %><th>ভর্তি ফি<small>একবার</small></th><% } %>
+            <% if (feeInfo.showSession) { %><th>সেশন ফি<small>বছরে</small></th><% } %>
+            <% if (feeInfo.showMonthly) { %><th>মাসিক বেতন<small>প্রতি মাসে</small></th><% } %>
+          </tr>
+        </thead>
+        <tbody>
+          <% feeInfo.rows.forEach(function (r) { %>
+          <tr>
+            <td><%= r.name %></td>
+            <% if (feeInfo.showAdmission) { %><td><%= r.admission %></td><% } %>
+            <% if (feeInfo.showSession) { %><td><%= r.sessionFee %></td><% } %>
+            <% if (feeInfo.showMonthly) { %><td><%= r.monthly %></td><% } %>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+    <% if (website.feesNote) { %><div class="fees-note"><%= website.feesNote %></div><% } %>
+  </div>
+  <% } %>
+
+  <% if (typeof features !== 'undefined' && features.length > 0) { %>
+  <div class="card features-card" id="features">
+    <h2>সুযোগ-সুবিধা</h2>
+    <div class="features-grid">
+      <% features.forEach(function (f) { %>
+        <div class="feature-item">
+          <div class="feature-icon"><%= f.icon || '✅' %></div>
+          <div class="feature-title"><%= f.title %></div>
+          <% if (f.text) { %><div class="feature-text"><%= f.text %></div><% } %>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+  <% } %>
+
+  <% if (teachers.length > 0) {
+       const HOME_TEACHER_LIMIT = 6;
+       const homeTeachers = teachers.slice(0, HOME_TEACHER_LIMIT);
+  %>
+  <div class="card" id="teachers">
+    <h2>শিক্ষক / স্টাফ</h2>
+    <div class="teacher-grid">
+      <% homeTeachers.forEach((t) => { %>
+        <div class="teacher-card">
+          <% if (t.photoDataUrl) { %>
+            <img src="<%= t.photoDataUrl %>" alt="<%= t.name %>" />
+          <% } else {
+               // Photo nai: nam-er prothom okkhor diye rongin avatar
+               const skip = /^(মো|মোঃ|মোছা|মোছাঃ|মোসা|মোসাঃ|মোসাম্মৎ|মোছাম্মৎ|মোছাম্মাৎ|মিস|মিসেস|Md|Mst|Mr|Mrs|Ms)[.ঃ:]*$/i;
+               const parts = String(t.name || '').trim().split(/\s+/).filter(Boolean);
+               const real = parts.find((w) => !skip.test(w)) || parts[0] || '?';
+               const initial = Array.from(real)[0].toUpperCase();
+               const colors = ['#2563eb','#7c3aed','#db2777','#ea580c','#059669','#0891b2','#c026d3','#65a30d'];
+               let h = 0; for (const ch of String(t.name || '')) h = (h * 31 + ch.codePointAt(0)) >>> 0;
+               const c1 = colors[h % colors.length];
+               const c2 = colors[(h + 3) % colors.length];
+          %>
+            <div class="avatar-fallback" style="background: linear-gradient(135deg, <%= c1 %>, <%= c2 %>);" aria-label="<%= t.name %>"><%= initial %></div>
+          <% } %>
+          <div class="name"><%= t.name %></div>
+          <% if (t.designation) { %><div class="designation"><%= t.designation %></div><% } %>
+        </div>
+      <% }) %>
+    </div>
+    <% if (teachers.length > HOME_TEACHER_LIMIT) { %>
+      <a href="/teachers" class="teaser-more">👩‍🏫 সবাইকে দেখুন (<%= teachers.length %> জন) →</a>
+    <% } %>
+  </div>
+  <% } %>
+
+  <% if (gallery.length > 0) {
+       const HOME_GALLERY_LIMIT = 6;
+       const homeGallery = gallery.slice(0, HOME_GALLERY_LIMIT);
+  %>
+  <div class="card" id="gallery">
+    <h2>গ্যালারি</h2>
+    <div class="gallery-grid">
+      <% homeGallery.forEach((g) => { %>
+        <img src="<%= g.imageDataUrl %>" alt="<%= g.caption || '' %>" onclick="openLightbox(this.src)" />
+      <% }) %>
+    </div>
+    <% if (gallery.length > HOME_GALLERY_LIMIT) { %>
+      <a href="/gallery" class="teaser-more">🖼️ সব ছবি দেখুন (<%= gallery.length %>টি) →</a>
+    <% } %>
+  </div>
+  <% } %>
+
+  <% if (website.contactAddress || website.contactPhone || website.contactEmail || website.mapEmbedUrl || website.facebookUrl || website.youtubeUrl) { %>
+  <div class="card" id="contact">
+    <h2>যোগাযোগ</h2>
+    <div class="contact-grid <%= website.mapEmbedUrl ? 'has-map' : '' %>">
+    <div class="contact-info">
+    <% if (website.contactAddress) { %>
+      <div class="contact-row"><span class="label">📍 ঠিকানা:</span><span><%= website.contactAddress %></span></div>
+    <% } %>
+    <% if (website.contactPhone) { %>
+      <div class="contact-row"><span class="label">📞 ফোন:</span><span><a href="tel:<%= website.contactPhone %>"><%= website.contactPhone %></a></span></div>
+    <% } %>
+    <% if (website.contactEmail) { %>
+      <div class="contact-row"><span class="label">✉️ ইমেইল:</span><span><a href="mailto:<%= website.contactEmail %>"><%= website.contactEmail %></a></span></div>
+    <% } %>
+
+    <% if (whatsappNumber) { %>
+      <a href="https://wa.me/<%= whatsappNumber %>" target="_blank" class="btn btn-block whatsapp-btn">💬 হোয়াটসঅ্যাপে মেসেজ করুন</a>
+    <% } %>
+
+    <% if (website.facebookUrl || website.youtubeUrl) { %>
+      <div class="social-links">
+        <% if (website.facebookUrl) { %><a href="<%= website.facebookUrl %>" target="_blank">📘 Facebook</a><% } %>
+        <% if (website.youtubeUrl) { %><a href="<%= website.youtubeUrl %>" target="_blank">▶️ YouTube</a><% } %>
+      </div>
+    <% } %>
+    </div><%# /.contact-info %>
+
+    <% if (website.mapEmbedUrl) { %>
+      <div class="map-wrap">
+        <iframe src="<%= website.mapEmbedUrl %>" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    <% } %>
+    </div><%# /.contact-grid %>
+  </div>
+  <% } %>
+
+  <%- include('_public-footer') %>
+
+  </div>
+
+  <% if (gallery.length > 0) { %>
+  <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox(event)">
+    <button type="button" class="lightbox-close" onclick="closeLightbox(event)" aria-label="বন্ধ করুন">✕</button>
+    <% if (gallery.length > 1) { %>
+      <button type="button" class="lb-nav lb-prev" onclick="stepLightbox(-1)" aria-label="আগের ছবি">‹</button>
+      <button type="button" class="lb-nav lb-next" onclick="stepLightbox(1)" aria-label="পরের ছবি">›</button>
+      <div class="lb-count" id="lbCount"></div>
+    <% } %>
+    <img id="lightboxImg" src="" alt="" />
+  </div>
+  <script>
+    var lbIndex = 0;
+    function lbImages() { return Array.prototype.slice.call(document.querySelectorAll('.gallery-grid img')); }
+    function lbShow(i, dir) {
+      var imgs = lbImages();
+      if (!imgs.length) return;
+      lbIndex = (i + imgs.length) % imgs.length;
+      var big = document.getElementById('lightboxImg');
+      big.classList.remove('slide-next', 'slide-prev');
+      void big.offsetWidth; // restart the animation
+      big.src = imgs[lbIndex].src;
+      if (dir) big.classList.add(dir > 0 ? 'slide-next' : 'slide-prev');
+      var c = document.getElementById('lbCount');
+      if (c) c.textContent = (lbIndex + 1) + ' / ' + imgs.length;
+    }
+    function openLightbox(src) {
+      var imgs = lbImages();
+      var idx = 0;
+      for (var k = 0; k < imgs.length; k++) { if (imgs[k].src === src) { idx = k; break; } }
+      lbShow(idx, 0);
+      document.getElementById('lightboxOverlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function stepLightbox(d) { lbShow(lbIndex + d, d); }
+    function closeLightbox(e) {
+      if (e && e.target && (e.target.id === 'lightboxImg' || (e.target.closest && e.target.closest('.lb-nav')))) return;
+      document.getElementById('lightboxOverlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    document.addEventListener('keydown', function (e) {
+      if (!document.getElementById('lightboxOverlay').classList.contains('open')) return;
+      if (e.key === 'Escape') closeLightbox();
+      else if (e.key === 'ArrowRight') stepLightbox(1);
+      else if (e.key === 'ArrowLeft') stepLightbox(-1);
+    });
+    // Swipe left / right on touch screens
+    (function () {
+      var ov = document.getElementById('lightboxOverlay'), x0 = null;
+      ov.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+      ov.addEventListener('touchend', function (e) {
+        if (x0 === null) return;
+        var dx = e.changedTouches[0].clientX - x0; x0 = null;
+        if (Math.abs(dx) > 50) stepLightbox(dx < 0 ? 1 : -1);
+      }, { passive: true });
+    })();
+  </script>
+  <% } %>
+<button type="button" class="to-top" id="toTop" aria-label="উপরে যান" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+<script>
+  (function () {
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Back-to-top button appears after scrolling down a little
+    var toTop = document.getElementById('toTop');
+    if (toTop) {
+      var toggleTop = function () { toTop.classList.toggle('show', window.scrollY > 500); };
+      window.addEventListener('scroll', toggleTop, { passive: true });
+      toggleTop();
+    }
+
+    // Scroll progress bar under the top menu
+    var bar = document.getElementById('scrollProgress');
+    if (bar) {
+      var ticking = false;
+      var update = function () {
+        var h = document.documentElement.scrollHeight - window.innerHeight;
+        bar.style.width = (h > 0 ? Math.min(100, (window.scrollY / h) * 100) : 0) + '%';
+        ticking = false;
+      };
+      window.addEventListener('scroll', function () {
+        if (!ticking) { ticking = true; requestAnimationFrame(update); }
+      }, { passive: true });
+      update();
+    }
+
+    if (reduce || !('IntersectionObserver' in window)) return;
+
+    // Count-up for the student / staff numbers
+    function countUp(el) {
+      var target = parseInt(el.getAttribute('data-count'), 10);
+      if (!isFinite(target) || target <= 0) return;
+      var start = null, dur = 1100;
+      el.textContent = '0';
+      function step(ts) {
+        if (start === null) start = ts;
+        var t = Math.min(1, (ts - start) / dur);
+        var eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = Math.round(target * eased);
+        if (t < 1) requestAnimationFrame(step); else el.textContent = target;
+      }
+      requestAnimationFrame(step);
+    }
+
+    // Sections fade in on scroll; their items pop in one by one
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.classList.add('in');
+        e.target.querySelectorAll('[data-count]').forEach(countUp);
+        io.unobserve(e.target);
+      });
+    }, { threshold: 0.06 });
+
+    document.querySelectorAll('.page-content .card').forEach(function (card) {
+      card.querySelectorAll('.stat-box, .notice-item, .teacher-card, .gallery-grid img').forEach(function (item, i) {
+        item.style.setProperty('--i', Math.min(i, 8));
+      });
+      card.classList.add('reveal');
+      io.observe(card);
+    });
+  })();
+</script>
+<%- include('_floating-contact') %>
+</body>
+</html>

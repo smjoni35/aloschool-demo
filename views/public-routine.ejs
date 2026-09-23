@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ক্লাস রুটিন — <%= settings.schoolName || 'স্কুল' %></title>
+<meta name="description" content="<%= (settings.schoolName || 'স্কুল') %> এর ক্লাস রুটিন" />
+<link rel="icon" type="image/png" href="/icon-192.png" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<%- include('_style') %>
+<%- include('_pwa') %>
+<%- include('_motion') %>
+<%- include('_public-style') %>
+<style>
+  body { padding: 0; }
+  .page-header {
+    background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+    padding: 32px 18px 40px; text-align: center; border-radius: 0 0 28px 28px; margin-bottom: 0;
+  }
+  .page-header h1 { color: #fff; font-size: 22px; margin: 0 0 6px; }
+  .page-header p { color: rgba(255,255,255,0.88); font-size: 13.5px; margin: 0; }
+  .page-content { max-width: 900px; margin: 0 auto; padding: 20px 16px 0; }
+  @media (min-width: 900px) {
+    body.public-home:not(.page-dashboard) { padding: 0; }
+    body.public-home .page-content .card { max-width: none; }
+    .page-header { padding: 48px 24px 56px; }
+    .page-header h1 { font-size: 30px; }
+    .page-header p { font-size: 15px; }
+  }
+  .shift-title { font-size: 17px; font-weight: 700; margin: 20px 0 10px; color: #1a1a1a; }
+  details.class-routine { border: 1px solid #eef2f7; border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+  details.class-routine summary { padding: 12px 14px; font-weight: 600; color: #1a1a1a; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; }
+  details.class-routine summary::-webkit-details-marker { display: none; }
+  details.class-routine summary::after { content: '▾'; color: #999; }
+  details.class-routine[open] summary::after { content: '▴'; }
+  .routine-table-wrap { overflow-x: auto; padding: 0 14px 14px; }
+  table.routine-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 480px; }
+  table.routine-table th, table.routine-table td { border: 1px solid #eef2f7; padding: 8px 6px; text-align: center; color: #1a1a1a; }
+  table.routine-table th { background: #f8fafc; font-weight: 600; white-space: nowrap; }
+  table.routine-table td .subj { font-weight: 600; color: #1a1a1a; }
+  table.routine-table td .tch { color: #333; font-size: 12px; font-weight: 500; display: block; margin-top: 2px; }
+</style>
+</head>
+<body class="public-home">
+
+  <%- include('_public-nav', { activePage: 'routine' }) %>
+
+  <div class="page-header">
+    <h1>🗓️ ক্লাস রুটিন</h1>
+    <p><%= settings.schoolName || '' %></p>
+  </div>
+
+  <div class="page-content">
+    <div class="card">
+      <% if (shifts.morning.length > 0 || shifts.day.length > 0) { %>
+        <a href="/routine/pdf" class="btn btn-primary btn-block" style="margin-bottom:10px;">📄 সব ক্লাসের রুটিন পিডিএফ ডাউনলোড</a>
+        <form method="GET" action="/routine/pdf" class="row" style="align-items:flex-end; gap:8px; margin-bottom:14px;">
+          <div style="flex:1;">
+            <label style="margin:0 0 4px;">শুধু নিজের ক্লাসের রুটিন চান?</label>
+            <select name="class">
+              <% ["morning", "day"].forEach(shift => { %>
+                <% shifts[shift].forEach(({ cls }) => { %>
+                  <option value="<%= cls.slug %>"><%= cls.name %> (<%= shift === 'morning' ? 'মর্নিং' : 'ডে' %> শিফট)</option>
+                <% }) %>
+              <% }) %>
+            </select>
+          </div>
+          <div style="flex:0 0 auto;">
+            <button type="submit" class="btn btn-secondary">📄 ডাউনলোড</button>
+          </div>
+        </form>
+      <% } %>
+
+      <% ["morning", "day"].forEach(shift => { %>
+        <% if (shifts[shift].length > 0) { %>
+          <p class="shift-title"><%= shift === 'morning' ? '🌅 মর্নিং শিফট' : '🏫 ডে শিফট' %></p>
+          <% shifts[shift].forEach(({ cls, routine, periodCount: classPeriodCount }) => { %>
+            <details class="class-routine">
+              <summary><%= cls.name %></summary>
+              <div class="routine-table-wrap">
+                <table class="routine-table">
+                  <thead>
+                    <tr>
+                      <th>পিরিয়ড</th>
+                      <% weekdays.forEach(day => { %>
+                        <% if (!routine.offDays.includes(day.key)) { %>
+                          <th><%= day.label %></th>
+                        <% } %>
+                      <% }) %>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% for (let i = 0; i < classPeriodCount; i++) { %>
+                      <tr>
+                        <td>
+                          <%= periodOrdinal(i + 1) %>
+                          <% if (shiftPeriodTimes[shift][i]) { %><br><span style="color:#666; font-size:11px;"><%= shiftPeriodTimes[shift][i] %></span><% } %>
+                        </td>
+                        <% weekdays.forEach(day => { %>
+                          <% if (!routine.offDays.includes(day.key)) { %>
+                            <% const p = (routine.schedule[day.key] || [])[i] || {}; %>
+                            <td>
+                              <% if (p.subject) { %>
+                                <span class="subj"><%= p.subject %></span>
+                                <% if (p.teacher) { %><span class="tch"><%= p.teacher %></span><% } %>
+                              <% } else { %>—<% } %>
+                            </td>
+                          <% } %>
+                        <% }) %>
+                      </tr>
+                    <% } %>
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          <% }) %>
+        <% } %>
+      <% }) %>
+
+      <% if (shifts.morning.length === 0 && shifts.day.length === 0) { %>
+        <p class="empty">এখনো কোনো ক্লাসের রুটিন প্রকাশ করা হয়নি।</p>
+      <% } %>
+    </div>
+
+    <%- include('_public-footer') %>
+
+  </div>
+
+<button type="button" class="to-top" id="toTop" aria-label="উপরে যান" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+<script>
+  var toTop = document.getElementById('toTop');
+  if (toTop) {
+    var toggleTop = function () { toTop.classList.toggle('show', window.scrollY > 500); };
+    window.addEventListener('scroll', toggleTop, { passive: true });
+    toggleTop();
+  }
+</script>
+<%- include('_floating-contact') %>
+</body>
+</html>

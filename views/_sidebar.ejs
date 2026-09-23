@@ -1,0 +1,123 @@
+<%
+/* Included on every admin page's <body>. Locals are guarded with typeof
+   checks since not every route passes every local the দ্যাশবোর্ড route
+   does (e.g. unreadCount is currently only computed by /panel — see the
+   note by topbar-bell below — so other pages show the bell with no
+   badge instead of erroring). */
+var _pending = (typeof pendingAdmissions !== 'undefined') ? pendingAdmissions : 0;
+var _unread = (typeof unreadCount !== 'undefined') ? unreadCount : 0;
+var _schoolName = (typeof settings !== 'undefined' && settings.schoolName) ? settings.schoolName : 'স্কুল ম্যানেজমেন্ট সিস্টেম';
+var _logo = (typeof settings !== 'undefined') ? settings.logoDataUrl : null;
+var _path = (typeof currentPath !== 'undefined') ? currentPath : '';
+// Prefix match (not exact) so e.g. /admin/fees/dues still highlights
+// under ফি ম্যানেজমেন্ট's বকেয়া রিপোর্ট link, and /panel only matches itself.
+function _isActive(href) {
+  if (href === '/panel') return _path === '/panel' || _path === '/';
+  return _path === href || (href !== '/' && _path.indexOf(href) === 0);
+}
+%>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="document.getElementById('sidebarNav').classList.remove('open'); this.classList.remove('show');"></div>
+
+<div class="sidebar" id="sidebarNav">
+  <div class="sb-brand">
+    <% if (_logo) { %><img src="<%= _logo %>" alt="লোগো" /><% } %>
+    <div class="name"><%= _schoolName %></div>
+  </div>
+  <% if (typeof demoMode !== 'undefined' && demoMode) { %>
+    <div style="background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:11.5px; padding:8px 10px; margin:0 10px 10px; border-radius:8px;">
+      🧪 ডেমো মোড চালু — ডেমো ডেটা নির্দিষ্ট সময় পরপর স্বয়ংক্রিয়ভাবে রিসেট হবে।
+    </div>
+  <% } %>
+
+  <a href="/panel" class="sb-link <%= _isActive('/panel') ? 'active' : '' %>"><span class="ic">🏠</span> ড্যাশবোর্ড</a>
+
+  <div class="sb-section">শিক্ষার্থী ও ভর্তি</div>
+  <a href="/students" class="sb-link <%= _isActive('/students') ? 'active' : '' %>"><span class="ic">🧑</span> শিক্ষার্থী</a>
+  <a href="/admissions" class="sb-link <%= _isActive('/admissions') ? 'active' : '' %>">
+    <span class="ic">📝</span> ভর্তির আবেদন
+    <% if (_pending > 0) { %><span class="badge"><%= _pending %></span><% } %>
+  </a>
+
+  <div class="sb-section">পরীক্ষা ও ফলাফল</div>
+  <a href="/exams" class="sb-link <%= _isActive('/exams') ? 'active' : '' %>"><span class="ic">🗂️</span> পরীক্ষা / মার্কস এন্ট্রি</a>
+  <a href="/result" target="_blank" class="sb-link"><span class="ic">🔎</span> পাবলিক রেজাল্ট</a>
+
+  <div class="sb-section">ফি ম্যানেজমেন্ট</div>
+  <a href="/admin/fees/dues" class="sb-link <%= _isActive('/admin/fees/dues') ? 'active' : '' %>"><span class="ic">📉</span> বকেয়া রিপোর্ট</a>
+  <a href="/admin/fees" class="sb-link <%= _isActive('/admin/fees') && !_isActive('/admin/fees/dues') ? 'active' : '' %>"><span class="ic">💳</span> ফি ম্যানেজ করুন</a>
+
+  <div class="sb-section">শিক্ষক বেতন ও ব্যয়</div>
+  <a href="/admin/salary/dues" class="sb-link <%= _isActive('/admin/salary/dues') ? 'active' : '' %>"><span class="ic">📉</span> বকেয়া / অগ্রিম</a>
+  <a href="/admin/salary" class="sb-link <%= _isActive('/admin/salary') && !_isActive('/admin/salary/dues') ? 'active' : '' %>"><span class="ic">💰</span> বেতন ম্যানেজ করুন</a>
+  <a href="/admin/expenses" class="sb-link <%= _isActive('/admin/expenses') ? 'active' : '' %>"><span class="ic">🧾</span> ব্যয় ব্যবস্থাপনা</a>
+  <a href="/admin/loans" class="sb-link <%= _isActive('/admin/loans') ? 'active' : '' %>"><span class="ic">🏦</span> ঋণ ব্যবস্থাপনা</a>
+
+  <div class="sb-section">উপস্থিতি</div>
+  <a href="/admin/attendance/setup" class="sb-link <%= _isActive('/admin/attendance/setup') ? 'active' : '' %>"><span class="ic">⚙️</span> সেশন / শিফট সেটআপ</a>
+  <a href="/admin/attendance/student" class="sb-link <%= _isActive('/admin/attendance/student') ? 'active' : '' %>"><span class="ic">🧑</span> শিক্ষার্থী উপস্থিতি</a>
+  <a href="/admin/attendance/teacher" class="sb-link <%= _isActive('/admin/attendance/teacher') ? 'active' : '' %>"><span class="ic">🏫</span> শিক্ষক উপস্থিতি</a>
+  <a href="/admin/attendance/reports/student" class="sb-link <%= _isActive('/admin/attendance/reports/student') ? 'active' : '' %>"><span class="ic">📊</span> শিক্ষার্থী উপস্থিতি রিপোর্ট</a>
+  <a href="/admin/attendance/reports/teacher" class="sb-link <%= _isActive('/admin/attendance/reports/teacher') ? 'active' : '' %>"><span class="ic">📈</span> শিক্ষক উপস্থিতি রিপোর্ট</a>
+
+  <div class="sb-section">ওয়েবসাইট ও শিক্ষক</div>
+  <a href="/admin/website" class="sb-link <%= _isActive('/admin/website') ? 'active' : '' %>"><span class="ic">🌐</span> ওয়েবসাইট ম্যানেজ করুন</a>
+  <a href="/admin/routine" class="sb-link <%= _isActive('/admin/routine') ? 'active' : '' %>"><span class="ic">🗓️</span> ক্লাস রুটিন</a>
+  <a href="/admin/teacher-accounts" class="sb-link <%= _isActive('/admin/teacher-accounts') ? 'active' : '' %>"><span class="ic">🏫</span> শিক্ষক অ্যাকাউন্ট</a>
+  <a href="/admin/promotion" class="sb-link <%= _isActive('/admin/promotion') ? 'active' : '' %>"><span class="ic">🎓</span> ক্লাস প্রমোশন</a>
+  <a href="/" target="_blank" class="sb-link"><span class="ic">🔗</span> পাবলিক ওয়েবসাইট</a>
+
+  <div class="sb-section">অ্যাকাউন্ট</div>
+  <a href="/admin" class="sb-link <%= _isActive('/admin') && _path === '/admin' ? 'active' : '' %>"><span class="ic">⚙️</span> সেটিংস</a>
+  <a href="/logout" class="sb-link"><span class="ic">🚪</span> লগআউট</a>
+
+  <div class="sb-dev-credit">
+    <div class="sb-dev-title">সফটওয়্যার সাপোর্ট</div>
+    <div class="sb-dev-name">M. Jony Sarkar</div>
+    <a href="tel:+8801735698806" class="sb-dev-line"><span class="ic">📞</span> +8801735698806</a>
+    <a href="mailto:jonynactar@gmail.com" class="sb-dev-line"><span class="ic">✉️</span> jonynactar@gmail.com</a>
+    <a href="https://www.facebook.com/smjoni35" target="_blank" class="sb-dev-line"><span class="ic">📘</span> Facebook</a>
+  </div>
+</div>
+
+<div class="mobile-topbar">
+  <button type="button" onclick="document.getElementById('sidebarNav').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('show');">☰</button>
+  <div style="font-weight:700; font-size:17px; flex:1;"><%= _schoolName %></div>
+  <a href="/admin/notifications" style="position:relative; font-size:18px; text-decoration:none;">
+    🔔
+    <% if (_unread > 0) { %><span class="bell-badge"><%= _unread %></span><% } %>
+  </a>
+  <a href="/admin" style="text-decoration:none;">
+    <span class="mt-avatar">
+      <% if (_logo) { %><img src="<%= _logo %>" alt="লোগো" /><% } else { %>👤<% } %>
+    </span>
+  </a>
+</div>
+
+<!-- Desktop top bar (search + bell + avatar) — lives here (not in each
+     page) so every admin page gets it for free. unreadCount is only
+     computed by the /panel route for now (see server.js's global
+     locals middleware note on why it isn't computed for every request),
+     so the badge only reflects reality on the ড্যাশবোর্ড page — other
+     pages show the bell with no badge rather than a wrong number. -->
+<div class="topbar-desktop">
+  <form method="GET" action="/admin/search" class="topbar-search">
+    <span class="ts-ic">🔎</span>
+    <input type="text" name="q" placeholder="শিক্ষার্থীর নাম বা রোল দিয়ে খুঁজুন..." />
+  </form>
+  <a href="/admin/notifications" class="topbar-bell">
+    🔔
+    <% if (_unread > 0) { %><span class="bell-badge"><%= _unread %></span><% } %>
+  </a>
+  <a href="/admin" class="topbar-avatar">
+    <span class="ta-circle">👤</span>
+    <span>অ্যাডমিন</span>
+  </a>
+</div>
+
+<div class="bottom-nav">
+  <a href="/panel" class="<%= _isActive('/panel') ? 'active' : '' %>"><span class="ic">🏠</span>হোম</a>
+  <a href="/students" class="<%= _isActive('/students') ? 'active' : '' %>"><span class="ic">🧑</span>শিক্ষার্থী</a>
+  <a href="/admin/fees" class="<%= _isActive('/admin/fees') && !_isActive('/admin/fees/dues') ? 'active' : '' %>"><span class="ic">💳</span>ফি</a>
+  <a href="/admin/fees/dues" class="<%= _isActive('/admin/fees/dues') ? 'active' : '' %>"><span class="ic">📉</span>রিপোর্ট</a>
+  <a href="#" onclick="document.getElementById('sidebarNav').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('show'); return false;"><span class="ic">☰</span>মেনু</a>
+</div>
