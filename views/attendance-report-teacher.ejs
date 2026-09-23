@@ -13,13 +13,12 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <div class="nav">
-    <a href="/panel">🏠 হোম</a>
-    <a href="/logout">🚪 লগআউট</a>
-  </div>
+  <%- include('_page-head', {
+    icon: '📈',
+    title: 'শিক্ষক উপস্থিতি রিপোর্ট'
+  }) %>
 
   <div class="card">
-    <h1>📈 শিক্ষক উপস্থিতি রিপোর্ট</h1>
 
     <form method="GET" action="/admin/attendance/reports/teacher">
       <label>সেশন</label>

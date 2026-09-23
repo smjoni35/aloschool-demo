@@ -13,13 +13,14 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <div class="nav">
-    <a href="/panel">🏠 হোম</a>
-    <a href="/logout">🚪 লগআউট</a>
-  </div>
+  <%- include('_page-head', {
+    icon: '🏦',
+    title: 'ঋণ ব্যবস্থাপনা',
+    desc: 'স্কুলের ঋণ ও কিস্তি পরিশোধ পরিচালনা করুন।'
+  }) %>
 
   <div class="card">
-    <h1>🏦 নতুন ঋণ যোগ করুন</h1>
+    <h2>নতুন ঋণ যোগ করুন</h2>
     <% if (saved) { %><p style="color:#16a34a; font-weight:600;">✓ ঋণ যোগ হয়েছে।</p><% } %>
     <form method="POST" action="/admin/loans/add">
       <label>ঋণদাতা / উৎস</label>

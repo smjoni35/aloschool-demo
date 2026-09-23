@@ -13,24 +13,28 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <div class="nav">
-    <a href="/panel">🏠 হোম</a>
-    <a href="/students">শিক্ষার্থী</a>
-    <a href="/logout">🚪 লগআউট</a>
-  </div>
+  <%- include('_page-head', {
+    icon: '📝',
+    title: 'ভর্তি আবেদন',
+    desc: 'অনলাইনে জমা দেওয়া শিক্ষার্থীদের ভর্তি আবেদন পরিচালনা করুন।'
+  }) %>
 
   <div class="card">
-    <h1>📝 ভর্তির আবেদন (<%= pending.length %>টি)</h1>
-    <p class="sub">অনলাইনে জমা হওয়া আবেদন — অনুমোদন করলে সংশ্লিষ্ট ক্লাসের শিক্ষার্থী তালিকায় যোগ হবে।</p>
-
-    <form method="GET" action="/admissions" class="row" style="margin-bottom:16px;">
+    <form method="GET" action="/admissions" class="row">
       <input type="text" name="q" value="<%= q || '' %>" placeholder="আবেদন নম্বর, নাম বা মোবাইল দিয়ে সার্চ করুন" style="flex:1;" />
       <button type="submit" class="btn btn-secondary" style="flex:0 0 auto;">🔍 সার্চ</button>
       <% if (q) { %><a href="/admissions" class="btn btn-secondary" style="flex:0 0 auto;">✕ মুছুন</a><% } %>
     </form>
+  </div>
 
+  <div class="card">
+    <h2>আবেদন তালিকা (<%= pending.length %>টি)</h2>
     <% if (pending.length === 0) { %>
-      <p class="empty"><%= q ? 'এই সার্চে কোনো আবেদন পাওয়া যায়নি।' : 'এই মুহূর্তে কোনো নতুন আবেদন নেই।' %></p>
+      <div class="empty-state">
+        <div class="empty-state-icon">📄</div>
+        <p class="empty"><%= q ? 'এই সার্চে কোনো আবেদন পাওয়া যায়নি।' : 'কোনো ভর্তি আবেদন পাওয়া যায়নি।' %></p>
+        <% if (!q) { %><p class="sub" style="margin:4px 0 0;">নতুন আবেদন জমা হলে এখানে দেখা যাবে।</p><% } %>
+      </div>
     <% } else { %>
       <% pending.forEach(a => { %>
         <div style="border:1px solid #f0f0f0; border-radius:10px; padding:14px; margin-bottom:12px;">

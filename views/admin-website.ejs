@@ -13,15 +13,14 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <div class="nav">
-    <a href="/panel">🏠 হোম</a>
-    <a href="/" target="_blank">🌐 ওয়েবসাইট দেখুন</a>
-    <a href="/logout">🚪 লগআউট</a>
-  </div>
+  <%- include('_page-head', {
+    icon: '🌐',
+    title: 'ওয়েবসাইট ম্যানেজ করুন',
+    desc: 'এখানে যা কিছু সংরক্ষণ করবেন, তা সরাসরি পাবলিক ওয়েবসাইটে দেখাবে — লগইন ছাড়াই সবাই দেখতে পারবে।'
+  }) %>
 
   <div class="card">
-    <h1>🌐 স্কুল ওয়েবসাইট</h1>
-    <p class="sub">এখানে যা কিছু সংরক্ষণ করবেন, তা সরাসরি পাবলিক ওয়েবসাইটে (<a href="/" target="_blank">হোমপেজে</a>) দেখাবে — লগইন ছাড়াই সবাই দেখতে পারবে।</p>
+    <a href="/" target="_blank" class="btn btn-secondary" style="margin-bottom:12px;">🌐 পাবলিক ওয়েবসাইট দেখুন</a>
     <p style="font-size:13px; color:#666; margin:0;">📊 বর্তমানে সিস্টেমে মোট <strong><%= totalStudents %></strong> জন শিক্ষার্থী ও <strong><%= teachers.length %></strong> জন শিক্ষক আছেন — এই সংখ্যাগুলো "কেন আমাদের স্কুল" স্ট্যাটসে স্বয়ংক্রিয়ভাবে দেখাবে (সব ক্লাস মিলিয়ে সর্বমোট)।</p>
   </div>
 

@@ -22,14 +22,14 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <div class="nav">
-    <a href="/admin/routine">⬅️ ফিরে যান</a>
-    <a href="/logout">🚪 লগআউট</a>
-  </div>
+  <%- include('_page-head', {
+    icon: '🗓️',
+    title: cls.name + ' — সাপ্তাহিক রুটিন',
+    desc: 'শিফট: ' + (shift === 'morning' ? '🌅 মর্নিং শিফট' : '🏫 ডে শিফট'),
+    crumbs: [{ label: 'হোম', href: '/panel' }, { label: 'ক্লাস রুটিন', href: '/admin/routine' }, { label: cls.name }]
+  }) %>
 
   <div class="card">
-    <h1>📅 <%= cls.name %> — সাপ্তাহিক রুটিন</h1>
-    <p class="sub">শিফট: <%= shift === 'morning' ? '🌅 মর্নিং শিফট' : '🏫 ডে শিফট' %> (শিফট বদলাতে <a href="/admin/routine">ক্লাস রুটিন পেজে</a> যান)</p>
     <div class="row" style="gap:8px; margin-bottom:14px;">
       <a href="/admin/routine/<%= cls.slug %>/pdf?inline=1" target="_blank" class="btn btn-primary" style="flex:1;">👁️ পিডিএফ দেখুন / প্রিন্ট করুন</a>
       <a href="/admin/routine/<%= cls.slug %>/pdf" class="btn btn-secondary" style="flex:1;">📄 ডাউনলোড</a>

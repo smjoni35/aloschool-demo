@@ -13,15 +13,14 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <div class="nav">
-    <a href="/panel">🏠 হোম</a>
-    <a href="/logout">🚪 লগআউট</a>
-    <a href="/exams">পরীক্ষা তালিকা</a>
-  </div>
+  <%- include('_page-head', {
+    icon: '🗂️',
+    title: exam.examName + ' — ' + exam.className,
+    desc: exam.schoolName + (exam.session ? ' — সেশন: ' + exam.session : '') + ' — ' + studentCount + ' জন শিক্ষার্থী',
+    crumbs: [{ label: 'হোম', href: '/panel' }, { label: 'পরীক্ষা / মার্কস এন্ট্রি', href: '/exams' }, { label: exam.examName }]
+  }) %>
 
   <div class="card">
-    <h1><%= exam.examName %> <span class="pill"><%= exam.className %></span></h1>
-    <p class="sub"><%= exam.schoolName %> <% if (exam.session) { %>— সেশন: <%= exam.session %><% } %> — <%= studentCount %> জন শিক্ষার্থী</p>
     <div style="display:flex; gap:8px;">
       <a href="/exams/<%= exam.key %>/results" class="btn btn-primary" style="flex:1;">📄 ফলাফল দেখুন / PDF তৈরি করুন</a>
       <a href="/exams/<%= exam.key %>/edit" class="btn btn-secondary">✏️ এডিট</a>

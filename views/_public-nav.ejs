@@ -52,13 +52,6 @@
     .nav-submenu a { display: block; padding: 9px 12px; border-radius: 8px; }
   }
 </style>
-<% if (typeof demoMode !== 'undefined' && demoMode) { %>
-  <div style="background:#1d4ed8; color:#fff; text-align:center; font-size:12.5px; padding:7px 10px; position:sticky; top:0; z-index:21;">
-    🧪 এটি একটি <strong>ডেমো ওয়েবসাইট</strong> — সব ফিচার নিজে টেস্ট করে দেখুন।
-    <a href="/login" style="color:#fff; text-decoration:underline;">এডমিন লগইন</a> (পাসওয়ার্ড: <strong><%= demoAdminPassword %></strong>) ·
-    <a href="/teacher/login" style="color:#fff; text-decoration:underline;">শিক্ষক লগইন</a> (পাসওয়ার্ড: <strong><%= demoTeacherPassword %></strong>)
-  </div>
-<% } %>
 <nav class="site-nav">
   <a class="brand" href="/">
     <% if (typeof settings !== 'undefined' && settings.logoDataUrl) { %><img src="<%= settings.logoDataUrl %>" alt="লোগো" /><% } %>

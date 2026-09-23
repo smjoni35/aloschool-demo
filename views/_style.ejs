@@ -89,6 +89,26 @@
   .nav a { flex: 1; background: #fff; padding: 10px; border-radius: 8px; text-align: center; font-size: 13px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
   .pill { display: inline-block; background: #eef4ff; color: #2563eb; padding: 2px 8px; border-radius: 999px; font-size: 12px; }
 
+  /* ---------- Page header + breadcrumb — every non-dashboard admin page ----------
+     Included via _page-head.ejs at the top of every /students, /admissions,
+     /exams, etc. page so all of them open with the same
+     "breadcrumb → icon + title + description" block instead of each page
+     inventing its own heading. Mirrors the dashboard hero's spacing/weight
+     so the whole panel reads as one product. */
+  .page-head-wrap { max-width: 720px; margin: 0 auto 16px; }
+  .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: #8a94a6; margin: 0 0 10px; flex-wrap: wrap; }
+  .breadcrumb a { color: #8a94a6; }
+  .breadcrumb a:hover { color: #2563eb; }
+  .breadcrumb .bc-sep { color: #c3cad6; }
+  .breadcrumb .bc-current { color: #1a1a1a; font-weight: 600; }
+  .page-head { display: flex; align-items: flex-start; gap: 12px; }
+  .page-head .ph-icon {
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+    background: #eef2ff; display: flex; align-items: center; justify-content: center; font-size: 21px;
+  }
+  .page-head .ph-title { font-size: 19px; font-weight: 700; margin: 0; color: #1a1a1a; }
+  .page-head .ph-desc { font-size: 13.5px; color: #666; margin: 3px 0 0; }
+
   /* Dashboard stat grid + grouped-menu section labels (admin panel, teacher
      panel) — shared so both dashboards look consistent. */
   .brand-header { display: flex; align-items: center; gap: 12px; }
@@ -129,14 +149,24 @@
       border: 1px solid rgba(15,23,42,0.05);
       box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 10px 28px rgba(15,23,42,0.06);
     }
-    body:not(.page-dashboard) .nav { max-width: 860px; }
+    body:not(.page-dashboard) .nav { max-width: 1200px; }
+    body:not(.page-dashboard) .page-head-wrap { max-width: 1200px; }
+    .page-head .ph-icon { width: 48px; height: 48px; font-size: 23px; border-radius: 13px; }
+    .page-head .ph-title { font-size: 21px; }
+    .page-head .ph-desc { font-size: 14px; }
     /* Sidebar-panel pages (admin/student lists etc.) sit to the right
        of the fixed 240px sidebar with real room to spare — let their
        cards use more of it instead of floating a narrow column in a
        sea of empty space. */
     body:not(.page-dashboard) .main-content { padding: 30px 36px 48px; }
-    body:not(.page-dashboard) .main-content .card { max-width: 980px; }
-    body:not(.page-dashboard) .mobile-topbar { max-width: 860px; }
+    body:not(.page-dashboard) .main-content .card { max-width: 1200px; }
+    body:not(.page-dashboard) .mobile-topbar { max-width: 1200px; }
+    /* On very wide monitors even a 1200px card still floats in a lot of
+       leftover space (the ড্যাশবোর্ড already goes full-width past the
+       sidebar — see .page-dashboard .app-shell below), so let every
+       other admin page do the same past 1400px instead of staying
+       boxed in the fixed 1400px .app-shell. */
+    body:not(.page-dashboard) .app-shell { max-width: none; }
 
     h1 { font-size: 23px; }
     h2 { font-size: 18px; }
@@ -401,7 +431,7 @@
        flex container (see above) — this margin-left is what actually
        shifts the bar right of the fixed sidebar now, matching
        .main-content's own offset. */
-    .topbar-desktop { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; margin-left: 240px; }
+    .topbar-desktop { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; margin-left: 240px; padding: 20px 36px 0; }
     .topbar-search { flex: 1; display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #eef2f7; border-radius: 10px; padding: 10px 14px; }
     .topbar-search input { border: none; outline: none; flex: 1; font-family: inherit; font-size: 14px; }
     .topbar-bell { position: relative; background: #fff; border: 1px solid #eef2f7; border-radius: 10px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 17px; text-decoration: none; }

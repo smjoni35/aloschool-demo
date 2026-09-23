@@ -1,0 +1,32 @@
+<%
+/* Shared page header — breadcrumb + icon/title/description — included at
+   the top of every non-dashboard admin page (see the individual views)
+   so every page in the panel opens with the same block instead of each
+   page inventing its own heading. Kept as one partial so a future style
+   change only has to happen here.
+   Locals:
+     title  - required, page name (also used as the current breadcrumb)
+     icon   - optional emoji shown in the rounded icon tile
+     desc   - optional one-line description under the title
+     crumbs - optional array of {label, href}; defaults to হোম → title */
+var _crumbs = (typeof crumbs !== 'undefined' && crumbs) ? crumbs : [{ label: 'হোম', href: '/panel' }, { label: title }];
+%>
+<div class="page-head-wrap">
+  <div class="breadcrumb">
+    <% _crumbs.forEach(function (c, i) { %>
+      <% if (i > 0) { %><span class="bc-sep">→</span><% } %>
+      <% if (c.href && i < _crumbs.length - 1) { %>
+        <a href="<%= c.href %>"><%= c.label %></a>
+      <% } else { %>
+        <span class="bc-current"><%= c.label %></span>
+      <% } %>
+    <% }) %>
+  </div>
+  <div class="page-head">
+    <% if (typeof icon !== 'undefined' && icon) { %><div class="ph-icon"><%= icon %></div><% } %>
+    <div>
+      <h1 class="ph-title"><%= title %></h1>
+      <% if (typeof desc !== 'undefined' && desc) { %><p class="ph-desc"><%= desc %></p><% } %>
+    </div>
+  </div>
+</div>

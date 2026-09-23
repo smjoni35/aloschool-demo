@@ -13,15 +13,14 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <div class="nav">
-    <a href="/panel">🏠 হোম</a>
-    <a href="/logout">🚪 লগআউট</a>
-    <a href="/exams/<%= exam.key %>/results">⬅ ফলাফল</a>
-  </div>
+  <%- include('_page-head', {
+    icon: '✏️',
+    title: (student.roll ? student.roll + '. ' : '') + student.name + ' — নম্বর এডিট',
+    desc: exam.className + ' — ' + exam.examName + ' — এখানে যেকোনো বিষয়ের নম্বর বদলে দিন',
+    crumbs: [{ label: 'হোম', href: '/panel' }, { label: 'ফলাফল', href: '/exams/' + exam.key + '/results' }, { label: student.name }]
+  }) %>
 
   <div class="card">
-    <h1><%= student.roll ? student.roll + '. ' : '' %><%= student.name %></h1>
-    <p class="sub"><%= exam.className %> — <%= exam.examName %> — এখানে যেকোনো বিষয়ের নম্বর বদলে দিন</p>
 
     <% if (typeof manualError !== 'undefined' && manualError && manualError.length > 0) { %>
       <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:10px 12px; margin-bottom:16px;">

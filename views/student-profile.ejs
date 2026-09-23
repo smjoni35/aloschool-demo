@@ -18,14 +18,16 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <div class="nav">
-    <a href="/panel">🏠 হোম</a>
-    <a href="/students?class=<%= classSlug %>">← শিক্ষার্থী তালিকা</a>
-    <a href="/students/<%= classSlug %>/<%= student.id %>/fees">💳 ফি</a>
-    <a href="/logout">🚪 লগআউট</a>
-  </div>
+  <%- include('_page-head', {
+    icon: '🧑',
+    title: student.name,
+    crumbs: [{ label: 'হোম', href: '/panel' }, { label: 'শিক্ষার্থী', href: '/students?class=' + classSlug }, { label: student.name }]
+  }) %>
 
   <div class="card">
+    <div style="display:flex; justify-content:flex-end; margin-bottom:6px;">
+      <a href="/students/<%= classSlug %>/<%= student.id %>/fees" class="btn btn-secondary" style="font-size:12px; padding:6px 10px;">💳 ফি দেখুন</a>
+    </div>
     <div class="profile-head">
       <% if (student.photoDataUrl) { %>
         <img src="<%= student.photoDataUrl %>" alt="<%= student.name %>" />

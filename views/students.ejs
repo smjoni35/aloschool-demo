@@ -13,11 +13,11 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <div class="nav">
-    <a href="/panel">🏠 হোম</a>
-    <a href="/logout">🚪 লগআউট</a>
-    <a href="/exams">পরীক্ষা</a>
-  </div>
+  <%- include('_page-head', {
+    icon: '📚',
+    title: 'শিক্ষার্থী',
+    desc: 'শিক্ষার্থীদের তথ্য, শ্রেণি ও একাডেমিক রেকর্ড পরিচালনা করুন।'
+  }) %>
 
   <details class="card acc" open>
     <summary>ক্লাস সিলেক্ট করুন</summary>

@@ -13,14 +13,14 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <div class="nav">
-    <a href="/panel">🏠 হোম</a>
-    <a href="/logout">🚪 লগআউট</a>
-  </div>
+  <%- include('_page-head', {
+    icon: '🔎',
+    title: 'শিক্ষার্থী খুঁজুন',
+    desc: 'নাম বা রোল নম্বর দিয়ে যেকোনো শিক্ষার্থীর প্রোফাইলে দ্রুত যান।'
+  }) %>
 
   <div class="card">
-    <h1>🔎 শিক্ষার্থী খুঁজুন</h1>
-    <form method="GET" action="/admin/search" class="row" style="margin-top:10px; align-items:flex-end;">
+    <form method="GET" action="/admin/search" class="row" style="align-items:flex-end;">
       <div style="flex:1;">
         <label>নাম বা রোল নম্বর</label>
         <input type="text" name="q" value="<%= q %>" placeholder="যেমন: রাফিদা আক্তার বা ১২" autofocus />
