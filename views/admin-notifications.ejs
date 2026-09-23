@@ -13,21 +13,20 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <div class="nav">
-    <a href="/panel">🏠 হোম</a>
-    <a href="/logout">🚪 লগআউট</a>
-  </div>
+  <%- include('_page-head', {
+    icon: '🔔',
+    title: 'নোটিফিকেশন',
+    desc: '৩০ দিনের বেশি পুরনো নোটিফিকেশন এমনিতেই স্বয়ংক্রিয়ভাবে মুছে যায় — নিচের ক্রস (✕) চেপে চাইলে আগেই মুছে ফেলতে পারবেন।'
+  }) %>
 
   <div class="card">
-    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-      <h1 style="margin:0;">🔔 নোটিফিকেশন</h1>
-      <% if (items.length > 0) { %>
+    <% if (items.length > 0) { %>
+      <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
         <form method="POST" action="/admin/notifications/clear" onsubmit="return confirm('সব নোটিফিকেশন মুছে ফেলতে চান?');">
           <button type="submit" class="btn btn-secondary" style="font-size:12px; padding:6px 10px;">🗑️ সব মুছুন</button>
         </form>
-      <% } %>
-    </div>
-    <p class="sub" style="margin:4px 0 0;">৩০ দিনের বেশি পুরনো নোটিফিকেশন এমনিতেই স্বয়ংক্রিয়ভাবে মুছে যায় — নিচের ক্রস (✕) চেপে চাইলে আগেই মুছে ফেলতে পারবেন।</p>
+      </div>
+    <% } %>
     <% if (items.length === 0) { %>
       <p class="empty">এখনো কোনো কার্যক্রম রেকর্ড হয়নি।</p>
     <% } else { %>

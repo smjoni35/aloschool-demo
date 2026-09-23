@@ -13,15 +13,13 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <div class="nav">
-    <a href="/panel">🏠 হোম</a>
-    <a href="/admin/fees/dues">📉 বকেয়া রিপোর্ট</a>
-    <a href="/logout">🚪 লগআউট</a>
-  </div>
+  <%- include('_page-head', {
+    icon: '💳',
+    title: 'ফি ম্যানেজ করুন',
+    desc: 'ক্লাসভিত্তিক ফি নির্ধারণ, মাসিক বেতন ও পরীক্ষার ফি বসানো — সব এখান থেকে।'
+  }) %>
 
   <div class="card">
-    <h1>💳 ফি ম্যানেজমেন্ট</h1>
-    <p class="sub" style="margin:2px 0 16px;">ক্লাসভিত্তিক ফি নির্ধারণ, মাসিক বেতন ও পরীক্ষার ফি বসানো — সব এখান থেকে।</p>
 
     <form method="GET" action="/admin/fees" class="row" style="align-items:flex-end;">
       <div>

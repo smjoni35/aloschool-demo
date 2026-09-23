@@ -13,13 +13,13 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <div class="nav">
-    <a href="/admin/loans">‹ ঋণ ব্যবস্থাপনা</a>
-    <a href="/logout">🚪 লগআউট</a>
-  </div>
+  <%- include('_page-head', {
+    icon: '🏦',
+    title: loan.lender,
+    crumbs: [{ label: 'হোম', href: '/panel' }, { label: 'ঋণ ব্যবস্থাপনা', href: '/admin/loans' }, { label: loan.lender }]
+  }) %>
 
   <div class="card">
-    <h1>🏦 <%= loan.lender %></h1>
     <p style="color:#666;">নেওয়ার তারিখ: <%= loan.date %> &nbsp;•&nbsp; ধরন: <%= loan.repaymentType %><% if (loan.interestRate) { %> &nbsp;•&nbsp; সুদ: <%= loan.interestRate %>%<% } %></p>
     <% if (loan.note) { %><p style="color:#666;">নোট: <%= loan.note %></p><% } %>
 

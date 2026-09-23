@@ -21,14 +21,13 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <div class="nav">
-    <a href="/panel">🏠 হোম</a>
-    <a href="/logout">🚪 লগআউট</a>
-  </div>
+  <%- include('_page-head', {
+    icon: '🏫',
+    title: 'শিক্ষক উপস্থিতি',
+    desc: 'শিক্ষকরা নিজেরা চেক-ইন করলে এখানে সময়সহ দেখা যাবে। প্রয়োজনে এখান থেকে ম্যানুয়ালি অবস্থা বদলানো যাবে (যেমন ছুটি/অনুপস্থিত)।'
+  }) %>
 
   <div class="card">
-    <h1>🏫 শিক্ষক উপস্থিতি</h1>
-    <p class="sub">শিক্ষকরা নিজেরা চেক-ইন করলে এখানে সময়সহ দেখা যাবে। প্রয়োজনে এখান থেকে ম্যানুয়ালি অবস্থা বদলানো যাবে (যেমন ছুটি/অনুপস্থিত)।</p>
 
     <% if (saved) { %>
       <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px; margin-bottom:14px;">
