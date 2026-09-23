@@ -22,6 +22,7 @@ const expenses = require("./lib/expenses");
 const loans = require("./lib/loans");
 const r2 = require("./lib/r2");
 const demoSeed = require("./lib/demoSeed");
+const demoLive = require("./lib/demoLive");
 
 // ---------- Demo mode ----------
 // When DEMO_MODE=true (set in the environment), the whole database is
@@ -1615,6 +1616,98 @@ app.get("/panel", async (req, res) => {
       }
     : null;
 
+  // ---------- Analytics (dashboard বিশ্লেষণ section) ----------
+  // Real data only. Wrapped in try/catch so a problem here can never
+  // take the whole dashboard down — the section just hides itself.
+  let analytics = null;
+  try {
+    const incomeExpense = [];
+    for (const m of collectionTrend) {
+      const exp =
+        (await teacherSalary.schoolSalaryPaidThisMonth(m.yearMonth)) +
+        (await expenses.monthlyTotal(m.yearMonth)) +
+        (await loans.monthlyRepaymentTotal(m.yearMonth));
+      incomeExpense.push({ label: m.label, income: m.amount, expense: exp });
+    }
+
+    const classStats = [];
+    for (const c of sortClassesForDisplay(classes)) {
+      const roster = (await db.get(`students:${c.slug}`)) || [];
+      const active = attendance.activeRosterFor(roster, attSession);
+      const dueRows = await fees.classDues(c.slug);
+      classStats.push({
+        name: c.name,
+        students: active.length,
+        due: dueRows.reduce((sum, r) => sum + (r.balance.due || 0), 0),
+        dueCount: dueRows.length,
+      });
+    }
+
+    const BN_DAYS = ["রবি", "সোম", "মঙ্গল", "বুধ", "বৃহঃ", "শুক্র", "শনি"];
+    const attendanceWeek = [];
+    for (let i = 6; i >= 0; i--) {
+      const dStr = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+      const [yy, mm, dd] = dStr.split("-").map(Number);
+      const label = BN_DAYS[new Date(yy, mm - 1, dd).getDay()];
+      let p = 0, tot = 0;
+      if (!attendance.isWeeklyHoliday(dStr)) {
+        for (const c of classes) {
+          const shift = shiftMap[c.slug];
+          if (!shift) continue;
+          const rec = await attendance.getStudentAttendance(attSession, shift, c.slug, dStr);
+          if (!rec) continue;
+          for (const st of Object.values(rec.records)) {
+            tot++;
+            if (st === "present") p++;
+          }
+        }
+      }
+      attendanceWeek.push({ label, rate: tot > 0 ? Math.round((p / tot) * 100) : null });
+    }
+
+    // সর্বশেষ পরীক্ষার বিশ্লেষণ — examlist-এ সবচেয়ে শেষে যোগ হওয়া
+    // examName+session গ্রুপের সব ক্লাস মিলিয়ে পাশের হার, গড় ও শীর্ষ ফলাফল।
+    let examAnalytics = null;
+    const lastEntry = examlist[examlist.length - 1];
+    if (lastEntry) {
+      const group = examlist.filter((e) => e.examName === lastEntry.examName && (e.session || "") === (lastEntry.session || ""));
+      const perClass = [];
+      const allRows = [];
+      for (const g of group) {
+        const exam = await db.get(`exam:${g.key}`);
+        if (!exam) continue;
+        const students = (await db.get(`students:${exam.classSlug}`)) || [];
+        const rows = computeResultsRows(exam, students).filter((r) => r.allEntered);
+        if (rows.length === 0) continue;
+        const passed = rows.filter((r) => r.overall.grade !== "F").length;
+        perClass.push({
+          name: exam.className,
+          appeared: rows.length,
+          passed,
+          passRate: Math.round((passed / rows.length) * 100),
+          avg: Math.round((rows.reduce((a, r) => a + r.pct, 0) / rows.length) * 10) / 10,
+        });
+        rows.forEach((r) => allRows.push({ name: r.student.name, className: exam.className, pct: r.pct, grade: r.overall.grade }));
+      }
+      if (perClass.length > 0) {
+        const appeared = perClass.reduce((a, c) => a + c.appeared, 0);
+        const passed = perClass.reduce((a, c) => a + c.passed, 0);
+        examAnalytics = {
+          title: lastEntry.examName + (lastEntry.session ? " " + lastEntry.session : ""),
+          appeared,
+          passed,
+          passRate: Math.round((passed / appeared) * 100),
+          perClass,
+          top: allRows.sort((a, b) => b.pct - a.pct).slice(0, 5),
+        };
+      }
+    }
+
+    analytics = { incomeExpense, classStats, attendanceWeek, examAnalytics };
+  } catch (err) {
+    console.error("Dashboard analytics failed:", err);
+  }
+
   res.render("dashboard", {
     settings,
     pendingAdmissions,
@@ -1632,6 +1725,7 @@ app.get("/panel", async (req, res) => {
     unreadCount,
     todayBn,
     trends,
+    analytics,
   });
 });
 
@@ -4450,14 +4544,17 @@ if (DEMO_MODE) {
   console.log(`[demo] DEMO_MODE চালু — প্রতি ${DEMO_RESET_HOURS} ঘণ্টায় ডেমো ডেটা রিসেট হবে।`);
   demoSeed
     .resetAndSeed()
-    .then((r) => console.log("[demo] ডেমো ডেটা সাজানো হয়েছে:", r))
+    .then((r) => { console.log("[demo] ডেমো ডেটা সাজানো হয়েছে:", r); return demoLive.enrich(); })
     .catch((e) => console.error("[demo] প্রাথমিক সিডিং ব্যর্থ হয়েছে:", e));
   setInterval(() => {
     demoSeed
       .resetAndSeed()
-      .then((r) => console.log("[demo] ডেমো ডেটা রিসেট/রিসিড করা হয়েছে:", r))
+      .then((r) => { console.log("[demo] ডেমো ডেটা রিসেট/রিসিড করা হয়েছে:", r); return demoLive.enrich(); })
       .catch((e) => console.error("[demo] রিসেট ব্যর্থ হয়েছে:", e));
   }, DEMO_RESET_HOURS * 60 * 60 * 1000);
+  // প্রতি DEMO_TICK_MINUTES (ডিফল্ট ২) মিনিটে একটা নতুন ফি জমা — যাতে সংখ্যা বদলাতে থাকে
+  setInterval(() => demoLive.tick().catch((e) => console.error("[demo] টিক ব্যর্থ:", e.message)),
+    (parseFloat(process.env.DEMO_TICK_MINUTES || "2") || 2) * 60 * 1000);
 }
 
 module.exports = app;
