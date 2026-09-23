@@ -25,6 +25,9 @@
       <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:10px 12px; margin-bottom:14px; font-size:13px; color:#1e3a8a;">
         🧪 এটি একটি <strong>ডেমো সাইট</strong> — যেকোনো শিক্ষকের নাম বেছে নিয়ে পাসওয়ার্ড দিন:<br />
         পাসওয়ার্ড: <strong><%= demoTeacherPassword %></strong>
+        <% if (accounts && accounts.length) { %>
+        <form method="POST" action="/teacher/login" style="margin:10px 0 0;"><input type="hidden" name="accountId" value="<%= accounts[0].id %>"><input type="hidden" name="password" value="<%= demoTeacherPassword %>"><button type="submit" class="btn btn-secondary btn-block">🏫 এক ক্লিকে শিক্ষক হিসেবে প্রবেশ</button></form>
+        <% } %>
       </div>
     <% } %>
     <% if (error) { %>
