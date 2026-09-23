@@ -13,13 +13,14 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <%- include('_page-head', {
-    icon: '📉',
-    title: 'বকেয়া / অগ্রিম রিপোর্ট',
-    crumbs: [{ label: 'হোম', href: '/panel' }, { label: 'বেতন ম্যানেজমেন্ট', href: '/admin/salary' }, { label: 'বকেয়া / অগ্রিম রিপোর্ট' }]
-  }) %>
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/admin/salary">← বেতন ম্যানেজমেন্ট</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
 
   <div class="card">
+    <h1>📉 বকেয়া / অগ্রিম রিপোর্ট</h1>
     <div class="stat-grid">
       <div class="stat-card">
         <div class="num" style="color:#b91c1c;">৳ <%= totalDue %></div>

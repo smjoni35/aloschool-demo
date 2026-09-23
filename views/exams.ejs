@@ -13,11 +13,11 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <%- include('_page-head', {
-    icon: '📋',
-    title: 'পরীক্ষা / মার্কস এন্ট্রি',
-    desc: 'পরীক্ষা তৈরি, শ্রেণি নির্বাচন এবং শিক্ষার্থীদের ফলাফল পরিচালনা করুন।'
-  }) %>
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+    <a href="/students">শিক্ষার্থী</a>
+  </div>
 
   <div class="card">
     <h2>নতুন পরীক্ষা তৈরি করুন</h2>
@@ -79,10 +79,7 @@
   <div class="card">
     <h2>বিদ্যমান পরীক্ষাসমূহ</h2>
     <% if (examGroups.length === 0) { %>
-      <div class="empty-state">
-        <div class="empty-state-icon">📋</div>
-        <p class="empty">এখনো কোনো পরীক্ষা তৈরি করা হয়নি।</p>
-      </div>
+      <p class="empty">এখনো কোনো পরীক্ষা তৈরি করা হয়নি।</p>
     <% } else { %>
       <% examGroups.forEach(group => { %>
         <div style="padding:12px 0; border-bottom:1px solid #f0f0f0;">

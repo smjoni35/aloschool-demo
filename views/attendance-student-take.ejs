@@ -29,14 +29,14 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <%- include('_page-head', {
-    icon: '🧑',
-    title: 'শিক্ষার্থী উপস্থিতি',
-    desc: 'সেশন, শিফট, ক্লাস ও তারিখ অনুযায়ী উপস্থিতি নিন বা এডিট করুন।',
-    crumbs: [{ label: 'হোম', href: backUrl }, { label: 'শিক্ষার্থী উপস্থিতি' }]
-  }) %>
+  <div class="nav">
+    <a href="<%= backUrl %>">🏠 হোম</a>
+    <a href="<%= restricted ? '/teacher/logout' : '/logout' %>">🚪 লগআউট</a>
+  </div>
 
   <div class="card">
+    <h1>🧑 শিক্ষার্থী উপস্থিতি</h1>
+    <p class="sub" style="margin-bottom:10px;">সেশন, শিফট, ক্লাস ও তারিখ অনুযায়ী উপস্থিতি নিন বা এডিট করুন।</p>
 
     <% if (saved) { %>
       <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px; margin-bottom:14px;">

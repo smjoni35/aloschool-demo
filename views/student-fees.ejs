@@ -21,15 +21,15 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <%- include('_page-head', {
-    icon: '💳',
-    title: student.name + ' — ফি',
-    desc: 'রোল: ' + (student.roll || '-') + (student.transportEnabled ? ' · 🚌 গাড়ি সুবিধা চালু' : '') + (student.coachingEnabled ? ' · 📘 কোচিং চালু' : ''),
-    crumbs: [{ label: 'হোম', href: '/panel' }, { label: student.name, href: '/students/' + classSlug + '/' + student.id }, { label: 'ফি' }]
-  }) %>
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/students/<%= classSlug %>/<%= student.id %>">← প্রোফাইল</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
 
   <div class="card">
-    <p class="sub" style="margin:0 0 12px;">ক্লাস: <span class="pill"><%= className %></span></p>
+    <h1><%= student.name %> <span class="pill"><%= className %></span></h1>
+    <p class="sub" style="margin:2px 0 12px;">রোল: <%= student.roll || '-' %><% if (student.transportEnabled) { %> · 🚌 গাড়ি সুবিধা চালু<% } %><% if (student.coachingEnabled) { %> · 📘 কোচিং চালু<% } %></p>
     <div class="stat-grid">
       <div class="stat-card">
         <div class="num">৳ <%= balance.charged %></div>

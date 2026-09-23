@@ -13,14 +13,15 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <%- include('_page-head', {
-    icon: '📝',
-    title: subject.name + ' — নম্বর এন্ট্রি',
-    desc: exam.className + ' — ' + exam.examName + ' — পূর্ণমান ' + subject.fullMarks,
-    crumbs: [{ label: 'হোম', href: '/panel' }, { label: exam.examName, href: '/exams/' + exam.key }, { label: subject.name }]
-  }) %>
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+    <a href="/exams/<%= exam.key %>">⬅ পরীক্ষা</a>
+  </div>
 
   <div class="card">
+    <h1><%= subject.name %></h1>
+    <p class="sub"><%= exam.className %> — <%= exam.examName %> — পূর্ণমান <%= subject.fullMarks %></p>
 
     <% if (typeof manualError !== 'undefined' && manualError && manualError.length > 0) { %>
       <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:10px 12px; margin-bottom:16px;">

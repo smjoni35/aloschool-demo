@@ -23,6 +23,11 @@ function _isActive(href) {
     <% if (_logo) { %><img src="<%= _logo %>" alt="লোগো" /><% } %>
     <div class="name"><%= _schoolName %></div>
   </div>
+  <% if (typeof demoMode !== 'undefined' && demoMode) { %>
+    <div style="background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:11.5px; padding:8px 10px; margin:0 10px 10px; border-radius:8px;">
+      🧪 ডেমো মোড চালু — ডেমো ডেটা নির্দিষ্ট সময় পরপর স্বয়ংক্রিয়ভাবে রিসেট হবে।
+    </div>
+  <% } %>
 
   <a href="/panel" class="sb-link <%= _isActive('/panel') ? 'active' : '' %>"><span class="ic">🏠</span> ড্যাশবোর্ড</a>
 
@@ -94,7 +99,6 @@ function _isActive(href) {
      locals middleware note on why it isn't computed for every request),
      so the badge only reflects reality on the ড্যাশবোর্ড page — other
      pages show the bell with no badge rather than a wrong number. -->
-<% if (_isActive('/panel')) { %>
 <div class="topbar-desktop">
   <form method="GET" action="/admin/search" class="topbar-search">
     <span class="ts-ic">🔎</span>
@@ -109,7 +113,6 @@ function _isActive(href) {
     <span>অ্যাডমিন</span>
   </a>
 </div>
-<% } %>
 
 <div class="bottom-nav">
   <a href="/panel" class="<%= _isActive('/panel') ? 'active' : '' %>"><span class="ic">🏠</span>হোম</a>

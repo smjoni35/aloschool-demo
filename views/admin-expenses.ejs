@@ -13,14 +13,13 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <%- include('_page-head', {
-    icon: '🧾',
-    title: 'ব্যয় ব্যবস্থাপনা',
-    desc: 'স্কুলের বিভিন্ন খরচ যোগ ও পরিচালনা করুন।'
-  }) %>
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
 
   <div class="card">
-    <h2>নতুন খরচ যোগ করুন</h2>
+    <h1>🧾 নতুন খরচ যোগ করুন</h1>
     <% if (saved) { %><p style="color:#16a34a; font-weight:600;">✓ খরচ যোগ হয়েছে।</p><% } %>
     <form method="POST" action="/admin/expenses/add">
       <label>খাত (Category)</label>

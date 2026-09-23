@@ -13,14 +13,18 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <%- include('_page-head', {
-    icon: '🗓️',
-    title: 'ক্লাস রুটিন',
-    desc: 'প্রতিটা ক্লাসকে একটা শিফটে (মর্নিং/ডে) বসিয়ে দিন, তারপর প্রতিটার নিজস্ব সাপ্তাহিক রুটিন সম্পাদনা করুন। পাবলিক ওয়েবসাইটে শুধু যেসব ক্লাসের রুটিন পূরণ করা আছে সেগুলোই দেখা যাবে।'
-  }) %>
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
 
   <div class="card">
-    <a href="/routine" target="_blank" class="btn btn-secondary btn-block" style="margin-top:0;">🔗 পাবলিক রুটিন পেজ দেখুন</a>
+    <h1>🗓️ ক্লাস রুটিন</h1>
+    <p class="sub">
+      প্রতিটা ক্লাসকে একটা শিফটে (মর্নিং/ডে) বসিয়ে দিন, তারপর প্রতিটার নিজস্ব সাপ্তাহিক রুটিন সম্পাদনা করুন।
+      পাবলিক ওয়েবসাইটে শুধু যেসব ক্লাসের রুটিন পূরণ করা আছে সেগুলোই দেখা যাবে।
+    </p>
+    <a href="/routine" target="_blank" class="btn btn-secondary btn-block">🔗 পাবলিক রুটিন পেজ দেখুন</a>
   </div>
 
   <div class="card">

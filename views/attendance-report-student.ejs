@@ -13,13 +13,14 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <%- include('_page-head', {
-    icon: '📊',
-    title: 'শিক্ষার্থী উপস্থিতি রিপোর্ট',
-    crumbs: [{ label: 'হোম', href: restricted ? '/teacher/attendance' : '/panel' }, { label: 'শিক্ষার্থী উপস্থিতি রিপোর্ট' }]
-  }) %>
+  <div class="nav">
+    <a href="<%= restricted ? '/teacher/attendance' : '/panel' %>">🏠 হোম</a>
+    <a href="<%= restricted ? '/teacher/logout' : '/logout' %>">🚪 লগআউট</a>
+  </div>
 
   <div class="card">
+    <h1>📊 শিক্ষার্থী উপস্থিতি রিপোর্ট</h1>
+
     <% if (!restricted) { %>
       <form method="GET" action="<%= baseUrl %>">
         <div class="row">

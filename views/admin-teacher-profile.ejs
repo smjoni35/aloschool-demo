@@ -19,11 +19,10 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <%- include('_page-head', {
-    icon: '🏫',
-    title: 'শিক্ষকের প্রোফাইল',
-    crumbs: [{ label: 'হোম', href: '/panel' }, { label: 'শিক্ষক অ্যাকাউন্ট', href: '/admin/teacher-accounts' }, { label: account.name }]
-  }) %>
+  <div class="nav">
+    <a href="/admin/teacher-accounts">⬅️ ফিরে যান</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
 
   <div class="card">
     <div class="brand-header">

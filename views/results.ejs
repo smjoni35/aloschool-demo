@@ -13,14 +13,15 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <%- include('_page-head', {
-    icon: '🏆',
-    title: 'ফলাফল',
-    desc: exam.schoolName + ' — ' + exam.className + ' — ' + exam.examName,
-    crumbs: [{ label: 'হোম', href: '/panel' }, { label: exam.examName, href: '/exams/' + exam.key }, { label: 'ফলাফল' }]
-  }) %>
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+    <a href="/exams/<%= exam.key %>">⬅ পরীক্ষা</a>
+  </div>
 
   <div class="card">
+    <h1>ফলাফল</h1>
+    <p class="sub"><%= exam.schoolName %> — <%= exam.className %> — <%= exam.examName %></p>
 
     <% if (rows.length === 0) { %>
       <p class="empty">এই ক্লাসে কোনো শিক্ষার্থী নেই।</p>

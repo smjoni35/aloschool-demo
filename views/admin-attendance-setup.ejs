@@ -13,13 +13,14 @@
     <%- include('_sidebar') %>
     <div class="main-content">
 
-  <%- include('_page-head', {
-    icon: '⚙️',
-    title: 'সেশন / শিফট সেটআপ',
-    desc: 'একাডেমিক সেশন, প্রতিটি ক্লাস কোন শিফটে চলবে, এবং কোন ক্লাসের ক্লাস টিচার কে — এখানে ঠিক করুন।'
-  }) %>
+  <div class="nav">
+    <a href="/panel">🏠 হোম</a>
+    <a href="/logout">🚪 লগআউট</a>
+  </div>
 
   <div class="card">
+    <h1>⚙️ উপস্থিতি সেটআপ</h1>
+    <p class="sub" style="margin-bottom:10px;">একাডেমিক সেশন, প্রতিটি ক্লাস কোন শিফটে চলবে, এবং কোন ক্লাসের ক্লাস টিচার কে — এখানে ঠিক করুন।</p>
 
     <% if (error) { %>
       <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:10px 12px; margin-bottom:14px;">
