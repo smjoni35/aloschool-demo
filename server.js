@@ -34,6 +34,46 @@ const DEMO_RESET_HOURS = parseFloat(process.env.DEMO_RESET_HOURS || "6");
 
 const app = express();
 
+// ---------- Vercel-এ ডেমো ডেটা (serverless-এ setInterval চলে না) ----------
+// Vercel-এ সার্ভার সারাক্ষণ চালু থাকে না, তাই টাইমারের বদলে রিকোয়েস্ট আসার সময়
+// দেখা হয়: ডেটা না থাকলে বা DEMO_RESET_HOURS পার হলে সিড হয়, আর প্রতি
+// DEMO_TICK_MINUTES মিনিটে একটা নতুন ফি জমা পড়ে। Upstash ছাড়া এটা ঠিকমতো চলবে না।
+if (DEMO_MODE && process.env.VERCEL) {
+  const RESET_MS = (parseFloat(process.env.DEMO_RESET_HOURS || "24") || 24) * 3600 * 1000;
+  const TICK_MS = (parseFloat(process.env.DEMO_TICK_MINUTES || "2") || 2) * 60 * 1000;
+  let seeding = null;
+  let okUntil = 0;
+  let lastTick = 0;
+  const ensureDemo = async () => {
+    const at = await db.get("demoSeededAt");
+    if (!at || Date.now() - at > RESET_MS) {
+      console.log("[demo] Vercel: ডেমো ডেটা সিড হচ্ছে...");
+      await demoSeed.resetAndSeed();
+      await demoLive.enrich();
+    }
+    okUntil = Date.now() + 60 * 1000;
+  };
+  app.use(async (req, res, next) => {
+    try {
+      if (Date.now() >= okUntil) {
+        if (!seeding) {
+          seeding = ensureDemo()
+            .catch((e) => console.error("[demo] সিডিং ব্যর্থ:", e))
+            .finally(() => { seeding = null; });
+        }
+        await seeding;
+      }
+      if (Date.now() - lastTick > TICK_MS) {
+        lastTick = Date.now();
+        await demoLive.tick().catch((e) => console.error("[demo] টিক ব্যর্থ:", e.message));
+      }
+    } catch (e) {
+      console.error("[demo]", e);
+    }
+    next();
+  });
+}
+
 // ---------- Security headers (helmet) ----------
 // helmet is loaded defensively: if the package isn't installed yet the app
 // still starts (with a warning) instead of crashing. CSP is turned off on
@@ -4537,10 +4577,12 @@ process.on("unhandledRejection", (err) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Progress card server running on port ${PORT}`));
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => console.log(`Progress card server running on port ${PORT}`));
+}
 
 // ---------- Demo mode: seed on boot, then reset on a timer ----------
-if (DEMO_MODE) {
+if (DEMO_MODE && !process.env.VERCEL) {
   console.log(`[demo] DEMO_MODE চালু — প্রতি ${DEMO_RESET_HOURS} ঘণ্টায় ডেমো ডেটা রিসেট হবে।`);
   demoSeed
     .resetAndSeed()
